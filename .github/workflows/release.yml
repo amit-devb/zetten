@@ -5,6 +5,7 @@ on:
     tags:
       - "v*"
 
+# we always need write permissions to create releases
 permissions:
   contents: write
 
