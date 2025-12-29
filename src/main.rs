@@ -1,10 +1,12 @@
 mod cache;
 mod cli;
 mod config;
+mod init;
 mod log;
 mod progress;
 mod root;
 mod runner;
+mod templates;
 mod venv;
 
 use anyhow::{anyhow, Result};
@@ -121,6 +123,11 @@ fn main() -> Result<()> {
     // Handle shell completions EARLY
     // --------------------------------------------------
     match cli.command {
+        Command::Init { template } => {
+            init::init(&template)?;
+            return Ok(());
+        }
+
         Command::Completions { shell } => {
             let mut cmd = Cli::command();
 

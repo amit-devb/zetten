@@ -29,6 +29,12 @@ pub enum Command {
         #[arg(value_enum)]
         shell: Shell,
     },
+
+    Init {
+        /// Project template (python, fastapi, django)
+        #[arg(default_value = "python")]
+        template: String,
+    },
 }
 
 #[derive(ValueEnum, Clone, Debug)]
