@@ -1,9 +1,9 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 pub struct Progress {
-    total: usize,
-    running: AtomicUsize,
-    done: AtomicUsize,
+    pub total: usize,
+    pub running: AtomicUsize,
+    pub done: AtomicUsize,
 }
 
 impl Progress {

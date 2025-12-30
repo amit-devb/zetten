@@ -1,34 +1,31 @@
-use std::time::{SystemTime, UNIX_EPOCH};
+// use crate::runner::ExecutionResult;
 
-use crate::runner::ExecutionResult;
-
-pub fn log(task: &str, msg: &str) {
-    let now = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_secs();
-
-    let thread_id = std::thread::current().id();
-
-    println!("[{}][{:?}][{}] {}", now, thread_id, task, msg);
+/// Print a user-facing info message
+pub fn info(msg: &str) {
+    println!("{}", msg);
 }
 
-/// Print buffered output for a task
-pub fn print_task_output(task: &str, result: &ExecutionResult) {
-    println!("────────── task: {} ──────────", task);
-
-    if !result.stdout.is_empty() {
-        println!("[stdout]");
-        print!("{}", String::from_utf8_lossy(&result.stdout));
+/// Print a success message for a task
+pub fn task_ok(task: &str, cached: bool) {
+    if cached {
+        println!("✓ {} (cached)", task);
+    } else {
+        println!("✓ {}", task);
     }
-
-    if !result.stderr.is_empty() {
-        println!("[stderr]");
-        print!("{}", String::from_utf8_lossy(&result.stderr));
-    }
-
-    println!(
-        "────────── end: {} (exit={}) ──────────",
-        task, result.exit_code
-    );
 }
+
+/// Print a failure message for a task
+pub fn task_fail(task: &str, code: i32) {
+    eprintln!("✗ {} (exit code {})", task, code);
+}
+
+/// Print a user-facing error message
+pub fn user_error(msg: &str) {
+    eprintln!("Error:\n{}", msg);
+}
+
+// Print command output (used later for CI / verbose mode)
+// pub fn print_task_output(_task: &str, _result: &ExecutionResult) {
+//     // Intentionally empty for now.
+//     // Will be used when adding verbose / CI output.
+// }

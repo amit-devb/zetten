@@ -24,6 +24,18 @@ pub enum Command {
         workers: String,
     },
 
+    /// Watch tasks and re-run on input changes
+    Watch {
+        /// Names of tasks to watch
+        tasks: Vec<String>,
+    },
+
+    /// Show task dependency graph
+    Graph,
+
+    /// Check project and environment health
+    Doctor,
+
     /// Generate shell completion scripts
     Completions {
         #[arg(value_enum)]

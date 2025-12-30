@@ -41,7 +41,7 @@ fn detect_template() -> &'static str {
 
 pub fn init(template: &str) -> Result<()> {
     if Path::new("zetten.toml").exists() {
-        bail!("zetten.toml already exists");
+        bail!("Zetten is already initialized.\n\nFound existing configuration:\n- zetten.toml");
     }
 
     let chosen = if template == "auto" {

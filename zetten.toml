@@ -1,9 +1,0 @@
-[tasks.lint]
-cmd = "ruff check src"
-inputs = ["src/"]
-
-[tasks.test]
-cmd = "pytest"
-inputs = ["src/", "tests/"]
-allow_exit_codes = [0, 5]
-depends_on = ["lint"]

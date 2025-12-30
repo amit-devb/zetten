@@ -1,13 +1,16 @@
 mod cache;
 mod cli;
 mod config;
+mod doctor;
+mod graph;
 mod init;
 mod log;
-mod progress;
 mod root;
 mod runner;
 mod templates;
 mod venv;
+mod watch;
+mod orchestrator;
 
 use anyhow::{anyhow, Result};
 use cache::compute_hash;
@@ -23,16 +26,57 @@ use std::fs;
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 
+/* --------------------------------------------------
+ * Exit helpers
+ * -------------------------------------------------- */
+
+fn exit_user_error(msg: &str) -> ! {
+    crate::log::user_error(msg);
+    std::process::exit(2);
+}
+
+fn exit_task_failure(code: i32) -> ! {
+    std::process::exit(code);
+}
+
+fn exit_internal_error(err: anyhow::Error) -> ! {
+    eprintln!("Internal error:\n{}", err);
+    std::process::exit(3);
+}
+
+/* --------------------------------------------------
+ * Work item
+ * -------------------------------------------------- */
+
 struct WorkItem {
     name: String,
     task: TaskConfig,
 }
 
-//
-// --------------------------------------------------
-// Collect transitive dependencies
-// --------------------------------------------------
-//
+/* --------------------------------------------------
+ * CI summary
+ * -------------------------------------------------- */
+
+struct RunSummary {
+    succeeded: usize,
+    cached: usize,
+    failed: usize,
+}
+
+impl RunSummary {
+    fn new() -> Self {
+        Self {
+            succeeded: 0,
+            cached: 0,
+            failed: 0,
+        }
+    }
+}
+
+/* --------------------------------------------------
+ * Dependency resolution
+ * -------------------------------------------------- */
+
 fn collect_tasks(config: &Config, roots: &[String]) -> Result<Vec<String>> {
     let mut visited = HashMap::new();
     let mut stack = roots.to_vec();
@@ -42,10 +86,20 @@ fn collect_tasks(config: &Config, roots: &[String]) -> Result<Vec<String>> {
             continue;
         }
 
-        let cfg = config
-            .tasks
-            .get(&task)
-            .ok_or_else(|| anyhow!("Unknown task '{}'", task))?;
+        let cfg = config.tasks.get(&task).ok_or_else(|| {
+            let available = config
+                .tasks
+                .keys()
+                .cloned()
+                .collect::<Vec<_>>()
+                .join("\n- ");
+
+            anyhow!(
+                "USER_ERROR: Unknown task '{}'\n\nAvailable tasks:\n- {}",
+                task,
+                available
+            )
+        })?;
 
         visited.insert(task.clone(), true);
 
@@ -57,11 +111,10 @@ fn collect_tasks(config: &Config, roots: &[String]) -> Result<Vec<String>> {
     Ok(visited.keys().cloned().collect())
 }
 
-//
-// --------------------------------------------------
-// Cycle detection (DFS with stack)
-// --------------------------------------------------
-//
+/* --------------------------------------------------
+ * Cycle detection
+ * -------------------------------------------------- */
+
 fn find_cycle(graph: &HashMap<String, Vec<String>>, nodes: &[String]) -> Option<Vec<String>> {
     #[derive(Clone, Copy)]
     enum State {
@@ -116,62 +169,113 @@ fn find_cycle(graph: &HashMap<String, Vec<String>>, nodes: &[String]) -> Option<
     None
 }
 
-fn main() -> Result<()> {
+/* --------------------------------------------------
+ * main
+ * -------------------------------------------------- */
+
+fn main() {
     let cli = Cli::parse();
 
-    // --------------------------------------------------
-    // Handle shell completions EARLY
-    // --------------------------------------------------
-    match cli.command {
+    match run_main(cli) {
+        Ok(()) => std::process::exit(0),
+        Err(e) => {
+            let msg = e.to_string();
+
+            if msg.starts_with("USER_ERROR:") {
+                exit_user_error(msg.trim_start_matches("USER_ERROR:").trim());
+            }
+
+            exit_internal_error(e);
+        }
+    }
+}
+
+/* --------------------------------------------------
+ * run_main
+ * -------------------------------------------------- */
+
+fn run_main(cli: Cli) -> Result<()> {
+    match &cli.command {
         Command::Init { template } => {
-            init::init(&template)?;
+            init::init(template)?;
+            return Ok(());
+        }
+
+        Command::Watch { tasks } => {
+            let (root, source) = root::find_project_root().map_err(|_| {
+                anyhow!(
+                    "USER_ERROR: Zetten is not initialized.\n\n\
+                        Run `zetten init` to get started."
+                )
+            })?;
+
+            std::env::set_current_dir(&root)?;
+            let config = Config::load(&source)?;
+            config.validate()?;
+
+            watch::run(&config, &tasks)?;
+            return Ok(());
+        }
+
+        Command::Doctor => {
+            doctor::run()?;
+            return Ok(());
+        }
+
+        Command::Graph => {
+            let (root, source) = root::find_project_root()
+                .map_err(|_| anyhow!("USER_ERROR: Zetten is not initialized"))?;
+
+            env::set_current_dir(&root)?;
+            let config = Config::load(&source)?;
+            config.validate()?;
+            graph::run(&config)?;
             return Ok(());
         }
 
         Command::Completions { shell } => {
             let mut cmd = Cli::command();
-
             match shell {
                 Shell::Bash => generate(shells::Bash, &mut cmd, "zetten", &mut std::io::stdout()),
                 Shell::Zsh => generate(shells::Zsh, &mut cmd, "zetten", &mut std::io::stdout()),
                 Shell::Fish => generate(shells::Fish, &mut cmd, "zetten", &mut std::io::stdout()),
             }
-
             return Ok(());
         }
 
         Command::Run { .. } => {}
     }
 
-    // --------------------------------------------------
-    // Project root auto-detection
-    // --------------------------------------------------
-    let root = root::find_project_root()?;
+    let (root, source) = root::find_project_root().map_err(|_| {
+        anyhow!(
+            "USER_ERROR: Zetten is not initialized.\n\n\
+            No Zetten configuration was found:\n\
+            - pyproject.toml with [tool.zetten]\n\
+            - zetten.toml\n\n\
+            To get started, run:\n\n\
+                zetten init"
+        )
+    })?;
+
     env::set_current_dir(&root)?;
 
-    let config = Config::load()?;
+    let config = Config::load(&source)?;
     config.validate()?;
 
     fs::create_dir_all(".zetten/cache")?;
 
-    // --------------------------------------------------
-    // Run command
-    // --------------------------------------------------
     if let Command::Run { tasks, workers } = cli.command {
         let workers = if workers == "auto" {
             num_cpus::get()
         } else {
             workers
                 .parse::<usize>()
-                .map_err(|_| anyhow!("Invalid --worker value '{}'", workers))?
+                .map_err(|_| anyhow!("USER_ERROR: Invalid --worker value '{}'", workers))?
         };
 
         let tasks = collect_tasks(&config, &tasks)?;
-        let progress = Arc::new(progress::Progress::new(tasks.len()));
+        let mut summary = RunSummary::new();
 
-        // --------------------------------------------------
-        // Build DAG
-        // --------------------------------------------------
         let mut indegree: HashMap<String, usize> = HashMap::new();
         let mut graph: HashMap<String, Vec<String>> = HashMap::new();
 
@@ -199,29 +303,20 @@ fn main() -> Result<()> {
         if ready.is_empty() {
             if let Some(cycle) = find_cycle(&graph, &tasks) {
                 return Err(anyhow!(
-                    "Dependency cycle detected:\n{}",
+                    "USER_ERROR: Dependency cycle detected:\n{}",
                     cycle.join(" -> ")
                 ));
-            } else {
-                return Err(anyhow!("Dependency cycle detected"));
             }
         }
 
-        // --------------------------------------------------
-        // Channels
-        // --------------------------------------------------
         let (work_tx, work_rx) = mpsc::channel::<WorkItem>();
         let (result_tx, result_rx) = mpsc::channel::<Result<(String, ExecutionResult)>>();
 
         let work_rx = Arc::new(Mutex::new(work_rx));
 
-        // --------------------------------------------------
-        // Worker pool
-        // --------------------------------------------------
-        for wid in 0..workers {
+        for _wid in 0..workers {
             let work_rx = Arc::clone(&work_rx);
             let result_tx = result_tx.clone();
-            let progress = progress.clone();
 
             thread::spawn(move || loop {
                 let work = {
@@ -237,16 +332,12 @@ fn main() -> Result<()> {
                 let name = work.name;
                 let task = work.task;
 
-                progress.start_task();
-                crate::log::log(&name, &format!("started on worker {}", wid));
-
                 let result: Result<ExecutionResult> = (|| {
                     let hash = compute_hash(&task.inputs)?;
                     let cache_file = format!(".zetten/cache/{}.hash", name);
 
                     if let Ok(prev) = fs::read_to_string(&cache_file) {
                         if prev == hash {
-                            crate::log::log(&name, "skipped (cached)");
                             return Ok(ExecutionResult {
                                 exit_code: 0,
                                 stdout: Vec::new(),
@@ -255,26 +346,17 @@ fn main() -> Result<()> {
                         }
                     }
 
-                    crate::log::log(&name, "running");
-
                     let exec = run_command(&task.cmd, &task.allow_exit_codes)?;
-
                     fs::write(&cache_file, &hash)?;
                     Ok(exec)
                 })();
-
-                progress.finish_task();
-                crate::log::log(&name, "done");
 
                 let _ = result_tx.send(result.map(|e| (name, e)));
             });
         }
 
-        // --------------------------------------------------
-        // Scheduler
-        // --------------------------------------------------
-        let mut remaining = indegree.clone();
-        let mut in_flight = 0usize;
+        let mut remaining: HashMap<String, usize> = indegree.clone();
+        let mut in_flight = 0;
 
         for t in ready.drain(..) {
             let task = config.tasks.get(&t).unwrap().clone();
@@ -286,13 +368,21 @@ fn main() -> Result<()> {
             let (finished, exec) = result_rx.recv()??;
             in_flight -= 1;
 
-            crate::log::print_task_output(&finished, &exec);
+            if exec.exit_code == 0 {
+                let cached = exec.stdout.is_empty() && exec.stderr.is_empty();
 
-            let (running, done, total) = progress.snapshot();
-            println!(
-                "[progress] running={} done={} total={}",
-                running, done, total
-            );
+                if cached {
+                    summary.cached += 1;
+                } else {
+                    summary.succeeded += 1;
+                }
+
+                crate::log::task_ok(&finished, cached);
+            } else {
+                summary.failed += 1;
+                crate::log::task_fail(&finished, exec.exit_code);
+                exit_task_failure(exec.exit_code);
+            }
 
             if let Some(children) = graph.get(&finished) {
                 for child in children {
@@ -310,7 +400,10 @@ fn main() -> Result<()> {
             }
         }
 
-        drop(work_tx);
+        crate::log::info("\nSummary:");
+        crate::log::info(&format!("- {} tasks succeeded", summary.succeeded));
+        crate::log::info(&format!("- {} tasks cached", summary.cached));
+        crate::log::info(&format!("- {} tasks failed", summary.failed));
     }
 
     Ok(())
