@@ -4,7 +4,7 @@ import urllib.request
 import shutil
 import sys
 
-VERSION = "0.1.1"
+VERSION = "1.0.0-beta.1"
 BASE_URL = "https://github.com/amit-devb/zetten/releases/download"
 
 def get_binary_name():
