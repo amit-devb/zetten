@@ -1,8 +1,8 @@
 [package]
 name = "zetten"
-version = "1.0.3"
+version = "1.0.4"
 edition = "2021"
-authors = ["Amit Deb deb.amit2013@gmail.com"]
+authors = ["Amit Deb <deb.amit2013@gmail.com>"]
 description = "Fast, Python-aware task runner with deterministic caching and DAG-based scheduling"
 license = "MIT"
 readme = "README.md"
@@ -20,3 +20,9 @@ num_cpus = "1.16"
 serde = { version = "1", features = ["derive"] }
 toml = "0.8"
 sha2 = "0.10"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true

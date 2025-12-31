@@ -4,58 +4,45 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
   build:
-    name: Build ${{ matrix.os }}
+    name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
-    # Added a timeout so it doesn't hang for 3 hours again
     timeout-minutes: 30
-
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-20.04
-            target: x86_64-unknown-linux-gnu
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
             bin: zetten-linux-x86_64
-
           - os: macos-latest
             target: aarch64-apple-darwin
             bin: zetten-macos-arm64
-
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             bin: zetten-windows-x86_64.exe
 
     steps:
       - uses: actions/checkout@v4
-
+      - name: Install musl-tools (Linux only)
+        if: matrix.target == 'x86_64-unknown-linux-musl'
+        run: sudo apt update && sudo apt install -y musl-tools
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-
-      # Added caching to speed up Ubuntu builds significantly
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
         with:
           key: ${{ matrix.target }}
-
       - name: Build
         run: cargo build --release --target ${{ matrix.target }}
-
-      - name: Verify glibc (Linux only)
-        if: matrix.os == 'ubuntu-20.04'
-        run: |
-          # Added -v to strings to handle potential binary issues
-          # and simplified the grep check
-          strings target/${{ matrix.target }}/release/zetten | grep GLIBC_ || true
-          ! strings target/${{ matrix.target }}/release/zetten | grep -E "GLIBC_2.(3[2-9]|[4-9][0-9])"
-
       - name: Prepare binary
         shell: bash
         run: |
@@ -66,28 +53,56 @@ jobs:
             BIN=target/${{ matrix.target }}/release/zetten
           fi
           cp "$BIN" dist/${{ matrix.bin }}
-          cd dist
-          sha256sum ${{ matrix.bin }} > ${{ matrix.bin }}.sha256
-
+          cd dist && sha256sum ${{ matrix.bin }} > ${{ matrix.bin }}.sha256
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.bin }}
           path: dist/*
 
-  release:
+  github_release:
     name: Create GitHub Release
     needs: build
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/download-artifact@v4
         with:
           path: dist
           pattern: zetten-*
           merge-multiple: true
-
-      - uses: softprops/action-gh-release@v2
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
         with:
-          files: |
-            zetten-*
+          files: zetten-*
+          generate_release_notes: true
+
+  publish_crates:
+    name: Publish to Crates.io
+    needs: github_release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Publish
+        run: cargo publish --token ${{ secrets.CRATES_TOKEN }}
+
+  publish_pypi:
+    name: Publish to PyPI
+    needs: github_release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install build tools
+        run: pip install build twine
+      - name: Build package
+        run: python -m build
+      - name: Upload to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: twine upload dist/*

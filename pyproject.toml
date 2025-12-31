@@ -1,13 +1,12 @@
 [project]
 name = "zetten"
-version = "1.0.3"
+version = "1.0.4"
 description = "Fast task runner for Python projects"
 readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "MIT" }
-
 authors = [
-  { name = "Amit Deb" }
+  { name = "Amit Deb", email = "deb.amit2013@gmail.com" }
 ]
 
 [project.urls]
@@ -20,4 +19,3 @@ zetten = "zetten.installer:install"
 
 [tool.setuptools.packages.find]
 where = ["python"]
-
