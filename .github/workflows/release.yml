@@ -5,7 +5,6 @@ on:
     tags:
       - "v*"
 
-# we always need write permissions to create releases
 permissions:
   contents: write
 
@@ -18,12 +17,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-20.04
             target: x86_64-unknown-linux-gnu
             bin: zetten-linux-x86_64
+
           - os: macos-latest
             target: aarch64-apple-darwin
             bin: zetten-macos-arm64
+
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             bin: zetten-windows-x86_64.exe
@@ -39,21 +40,30 @@ jobs:
       - name: Build
         run: cargo build --release --target ${{ matrix.target }}
 
+      - name: Verify glibc (Linux only)
+        if: matrix.os == 'ubuntu-20.04'
+        run: |
+          strings target/${{ matrix.target }}/release/zetten | grep GLIBC_
+          ! strings target/${{ matrix.target }}/release/zetten | grep GLIBC_2.3[2-9]
+
       - name: Prepare binary
         shell: bash
         run: |
           mkdir -p dist
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            cp target/${{ matrix.target }}/release/zetten.exe dist/${{ matrix.bin }}
+            BIN=target/${{ matrix.target }}/release/zetten.exe
           else
-            cp target/${{ matrix.target }}/release/zetten dist/${{ matrix.bin }}
+            BIN=target/${{ matrix.target }}/release/zetten
           fi
+          cp "$BIN" dist/${{ matrix.bin }}
+          cd dist
+          sha256sum ${{ matrix.bin }} > ${{ matrix.bin }}.sha256
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.bin }}
-          path: dist/${{ matrix.bin }}
+          path: dist/*
 
   release:
     name: Create GitHub Release
@@ -61,12 +71,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           path: dist
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v2
         with:
           files: dist/**/*
