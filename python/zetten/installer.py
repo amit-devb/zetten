@@ -6,7 +6,6 @@ import sys
 import hashlib
 import importlib.metadata
 
-# This URL always points to the latest released assets
 BASE_URL = "https://github.com/amit-devb/zetten/releases/latest/download"
 
 def get_binary_name():
@@ -27,7 +26,6 @@ def sha256_file(path):
     return h.hexdigest()
 
 def download_file(url, dest):
-    # GitHub requires a User-Agent or it may return 403/404 for scripts
     req = urllib.request.Request(url, headers={'User-Agent': 'Zetten-Installer'})
     with urllib.request.urlopen(req) as response, open(dest, 'wb') as out_file:
         shutil.copyfileobj(response, out_file)
@@ -37,7 +35,6 @@ def install():
     binary_url = f"{BASE_URL}/{name}"
     checksum_url = f"{binary_url}.sha256"
 
-    # Define install directory
     if os.name == "nt":
         bin_dir = os.path.join(sys.prefix, "Scripts")
         target = os.path.join(bin_dir, "zetten.exe")
@@ -50,7 +47,7 @@ def install():
     tmp_sum = tmp_bin + ".sha256"
 
     try:
-        print(f"Downloading Zetten binary...")
+        print(f"Downloading Zetten binary from GitHub...")
         download_file(binary_url, tmp_bin)
         download_file(checksum_url, tmp_sum)
 
@@ -65,12 +62,10 @@ def install():
         if os.name != "nt":
             os.chmod(target, 0o755)
         
-        print(f"✔ Zetten successfully installed to {target}")
+        print(f"✔ Zetten v1.0.6 installed successfully to {target}")
 
     except Exception as e:
         print(f"✘ Installation failed: {e}")
-        if "404" in str(e):
-            print("Note: The release might still be processing on GitHub. Please wait a minute and try again.")
         if os.path.exists(tmp_bin): os.remove(tmp_bin)
         sys.exit(1)
     finally:
