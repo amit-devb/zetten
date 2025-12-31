@@ -10,6 +10,7 @@ permissions:
   contents: write
 
 jobs:
+  # STEP 1: Build binaries for all platforms
   build:
     name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
@@ -30,19 +31,26 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - name: Install musl-tools (Linux only)
         if: matrix.target == 'x86_64-unknown-linux-musl'
-        run: sudo apt update && sudo apt install -y musl-tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y musl-tools
+
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
+
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2
         with:
           key: ${{ matrix.target }}
+
       - name: Build
         run: cargo build --release --target ${{ matrix.target }}
+
       - name: Prepare binary
         shell: bash
         run: |
@@ -53,13 +61,16 @@ jobs:
             BIN=target/${{ matrix.target }}/release/zetten
           fi
           cp "$BIN" dist/${{ matrix.bin }}
-          cd dist && sha256sum ${{ matrix.bin }} > ${{ matrix.bin }}.sha256
+          cd dist
+          sha256sum ${{ matrix.bin }} > ${{ matrix.bin }}.sha256
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.bin }}
           path: dist/*
 
+  # STEP 2: Create the GitHub Release and upload binaries
   github_release:
     name: Create GitHub Release
     needs: build
@@ -70,12 +81,14 @@ jobs:
           path: dist
           pattern: zetten-*
           merge-multiple: true
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           files: zetten-*
           generate_release_notes: true
 
+  # STEP 3: Publish to Crates.io (Rust Registry)
   publish_crates:
     name: Publish to Crates.io
     needs: github_release
@@ -84,9 +97,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+      - name: Dry Run Check
+        run: cargo publish --dry-run
       - name: Publish
         run: cargo publish --token ${{ secrets.CRATES_TOKEN }}
 
+  # STEP 4: Publish to PyPI (Python Registry)
   publish_pypi:
     name: Publish to PyPI
     needs: github_release
@@ -101,6 +117,8 @@ jobs:
         run: pip install build twine
       - name: Build package
         run: python -m build
+      - name: Check package metadata
+        run: twine check dist/*
       - name: Upload to PyPI
         env:
           TWINE_USERNAME: __token__
