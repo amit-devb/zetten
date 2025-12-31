@@ -3,8 +3,10 @@ import platform
 import urllib.request
 import shutil
 import sys
+import importlib.metadata
 
-VERSION = "1.0.1"
+
+VERSION = importlib.metadata.version("zetten")
 BASE_URL = "https://github.com/amit-devb/zetten/releases/download"
 
 def get_binary_name():
