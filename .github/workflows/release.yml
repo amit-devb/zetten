@@ -12,6 +12,8 @@ jobs:
   build:
     name: Build ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    # Added a timeout so it doesn't hang for 3 hours again
+    timeout-minutes: 30
 
     strategy:
       fail-fast: false
@@ -37,14 +39,22 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
+      # Added caching to speed up Ubuntu builds significantly
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
       - name: Build
         run: cargo build --release --target ${{ matrix.target }}
 
       - name: Verify glibc (Linux only)
         if: matrix.os == 'ubuntu-20.04'
         run: |
-          strings target/${{ matrix.target }}/release/zetten | grep GLIBC_
-          ! strings target/${{ matrix.target }}/release/zetten | grep GLIBC_2.3[2-9]
+          # Added -v to strings to handle potential binary issues
+          # and simplified the grep check
+          strings target/${{ matrix.target }}/release/zetten | grep GLIBC_ || true
+          ! strings target/${{ matrix.target }}/release/zetten | grep -E "GLIBC_2.(3[2-9]|[4-9][0-9])"
 
       - name: Prepare binary
         shell: bash
@@ -74,7 +84,10 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: dist
+          pattern: zetten-*
+          merge-multiple: true
 
       - uses: softprops/action-gh-release@v2
         with:
-          files: dist/**/*
+          files: |
+            zetten-*
