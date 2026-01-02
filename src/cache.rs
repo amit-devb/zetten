@@ -1,34 +1,39 @@
-use anyhow::Result;
-use sha2::{Digest, Sha256};
+use anyhow::{Context, Result};
+use globset::{Glob, GlobSetBuilder};
+use ignore::WalkBuilder;
 use std::fs;
-use std::path::{Path, PathBuf};
+use sha2::{Sha256, Digest};
 
-pub fn compute_hash(inputs: &[String]) -> Result<String> {
+pub fn compute_hash(patterns: &[String]) -> Result<String> {
     let mut hasher = Sha256::new();
+    let mut builder = GlobSetBuilder::new();
 
-    for input in inputs {
-        let path = Path::new(input);
-        hash_path(path, &mut hasher)?;
+    for pat in patterns {
+        builder.add(Glob::new(pat)?);
     }
+    let glob_set = builder.build()?;
 
-    Ok(format!("{:x}", hasher.finalize()))
-}
+    // Walk the project directory, respecting .gitignore but finding matches
+    let walker = WalkBuilder::new("./")
+        .hidden(false) 
+        .build();
 
-fn hash_path(path: &Path, hasher: &mut Sha256) -> Result<()> {
-    if path.is_file() {
-        let bytes = fs::read(path)?;
-        hasher.update(bytes);
-    } else if path.is_dir() {
-        let mut entries: Vec<PathBuf> = fs::read_dir(path)?
-            .map(|e| e.map(|e| e.path()))
-            .collect::<Result<_, _>>()?;
+    for result in walker {
+        let entry = result?;
+        let path = entry.path();
 
-        entries.sort();
-
-        for entry in entries {
-            hash_path(&entry, hasher)?;
+        if path.is_file() {
+            let relative_path = path.strip_prefix("./").unwrap_or(path);
+            
+            if glob_set.is_match(relative_path) {
+                let content = fs::read(path)
+                    .with_context(|| format!("Failed to read file: {:?}", path))?;
+                // Hash both the path and the content to detect renames/moves
+                hasher.update(relative_path.to_string_lossy().as_bytes());
+                hasher.update(&content);
+            }
         }
     }
 
-    Ok(())
+    Ok(format!("{:x}", hasher.finalize()))
 }

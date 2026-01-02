@@ -1,61 +1,69 @@
-use anyhow::Result;
-use std::collections::HashMap;
-use std::path::PathBuf;
-use std::thread;
-use std::time::Duration;
-
-use crate::cache::compute_hash;
 use crate::config::Config;
-use crate::log;
-use crate::orchestrator::run_tasks;
+use anyhow::Result;
+use notify::{Config as NotifyConfig, RecommendedWatcher, RecursiveMode, Watcher, Event};
+use std::path::Path;
+use std::sync::mpsc;
+use std::time::{Duration, Instant};
 
-/// Entry point for `zetten watch`
-pub fn run(config: &Config, tasks: &[String]) -> Result<()> {
-    log::info("Watching for changes...\n");
-
-    // 👉 Run once immediately
-    run_tasks(tasks)?;
-
-    let inputs = collect_inputs(config, tasks)?;
-    let mut last = hash_inputs(&inputs)?;
-
-    loop {
-        thread::sleep(Duration::from_millis(500));
-
-        let current = hash_inputs(&inputs)?;
-        if current != last {
-            log::info("\n[change detected]\n");
-            last = current;
-
-            run_tasks(tasks)?;
+pub fn run(config: &Config, task_names: &[String]) -> Result<()> {
+    let (root_path, _) = crate::root::find_project_root()?; // Get project root
+    let (tx, rx) = mpsc::channel();
+    let mut watcher = RecommendedWatcher::new(tx, NotifyConfig::default())?;
+    
+    for name in task_names {
+        if let Some(task) = config.tasks.get(name) {
+            for input in &task.inputs {
+                if Path::new(input).exists() {
+                    watcher.watch(Path::new(input), RecursiveMode::Recursive)?;
+                }
+            }
         }
     }
+
+    crate::log::info("Precision Watch active. Waiting for changes...");
+    let _ = crate::run_tasks(task_names.to_vec(), "auto".to_string(), false, vec![], None);
+
+    let mut last_run = Instant::now();
+    let debounce = Duration::from_millis(500);
+
+    for res in rx {
+        if let Ok(event) = res {
+            if last_run.elapsed() < debounce || !is_relevant(&event) { continue; }
+
+            // SAFETY: Only process paths inside our project root
+            let project_paths: Vec<_> = event.paths.iter()
+                .filter(|p| crate::root::is_path_in_root(p, &root_path))
+                .cloned()
+                .collect();
+
+            if project_paths.is_empty() { continue; }
+
+            let affected = identify_affected(config, task_names, &project_paths);
+            if !affected.is_empty() {
+                crate::log::info(&format!("Change in {:?}. Re-running affected tasks...", project_paths[0]));
+                let _ = crate::run_tasks(affected, "auto".to_string(), false, vec![], None);
+                last_run = Instant::now();
+            }
+        }
+    }
+    Ok(())
 }
 
-/// Collect all input paths for the given tasks
-fn collect_inputs(config: &Config, tasks: &[String]) -> Result<Vec<PathBuf>> {
-    let mut paths = Vec::new();
-
-    for task in tasks {
-        let cfg = config.tasks.get(task).unwrap();
-        for input in &cfg.inputs {
-            paths.push(PathBuf::from(input));
-        }
-    }
-
-    Ok(paths)
+fn is_relevant(event: &Event) -> bool {
+    event.kind.is_modify() || event.kind.is_create() || event.kind.is_remove()
 }
 
-/// Hash all watched inputs
-fn hash_inputs(inputs: &[PathBuf]) -> Result<HashMap<PathBuf, String>> {
-    let mut hashes = HashMap::new();
-
-    for path in inputs {
-        if path.exists() {
-            let hash = compute_hash(&[path.to_string_lossy().to_string()])?;
-            hashes.insert(path.clone(), hash);
+fn identify_affected(config: &Config, roots: &[String], paths: &[std::path::PathBuf]) -> Vec<String> {
+    let mut affected = Vec::new();
+    for name in roots {
+        if let Some(task) = config.tasks.get(name) {
+            for input in &task.inputs {
+                let input_p = Path::new(input);
+                if paths.iter().any(|p| p.starts_with(input_p) || input_p == p) {
+                    if !affected.contains(name) { affected.push(name.clone()); }
+                }
+            }
         }
     }
-
-    Ok(hashes)
+    affected
 }

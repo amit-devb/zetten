@@ -9,44 +9,53 @@ use clap::{Parser, Subcommand, ValueEnum};
 )]
 pub struct Cli {
     #[command(subcommand)]
-    pub command: Command,
+    pub command: Option<Command>,
 }
 
-#[derive(Subcommand, Debug)]
+#[derive(Subcommand, Clone, Debug)]
 pub enum Command {
-    /// Run one or more tasks
+    /// Initialize a new Zetten project
+    Init {
+        /// Name of the template to use
+        template: Option<String>,
+    },
+
+    /// Run tasks in parallel with caching
     Run {
-        /// Names of tasks to run
+        /// Names of the tasks to run
         tasks: Vec<String>,
 
-        /// Number of worker threads (or \"auto\")
-        #[arg(long = "worker", default_value = "auto")]
+        /// Number of parallel workers
+        #[arg(short, long, default_value = "auto")]
         workers: String,
+
+        /// Preview the execution plan without running commands
+        #[arg(long)]
+        dry_run: bool,
+
+        /// Pass additional arguments to the task command (e.g. zetten run test -- -k login)
+        #[arg(last = true)]
+        args: Vec<String>,
+
+        /// Filter tasks by a specific tag (e.g., --tag ci)
+        #[arg(short, long)]
+        tag: Option<String>,
     },
 
-    /// Watch tasks and re-run on input changes
-    Watch {
-        /// Names of tasks to watch
-        tasks: Vec<String>,
-    },
+    /// List all available tasks
+    Tasks,
 
-    /// Show task dependency graph
-    Graph,
+    /// Watch for changes and re-run tasks
+    Watch { tasks: Vec<String> },
 
-    /// Check project and environment health
+    /// Check project health
     Doctor,
 
-    /// Generate shell completion scripts
-    Completions {
-        #[arg(value_enum)]
-        shell: Shell,
-    },
+    /// Visualize the task dependency graph
+    Graph,
 
-    Init {
-        /// Project template (python, fastapi, django)
-        #[arg(default_value = "python")]
-        template: String,
-    },
+    /// Generate shell completions
+    Completions { shell: Shell },
 }
 
 #[derive(ValueEnum, Clone, Debug)]

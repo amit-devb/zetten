@@ -1,51 +1,64 @@
 use anyhow::{anyhow, Result};
-use std::env;
-use std::fs;
-use std::path::PathBuf;
+use directories::ProjectDirs;
+use std::path::{Path, PathBuf};
 
+/// Defines the source of the Zetten configuration
 #[derive(Debug, Clone)]
 pub enum ConfigSource {
     ZettenToml(PathBuf),
     PyProjectToml(PathBuf),
 }
 
-/// Find the project root by searching for Zetten configuration upwards
+/// Finds the project root by searching upwards for pyproject.toml or zetten.toml.
+/// Priority is given to pyproject.toml as the primary configuration source.
 pub fn find_project_root() -> Result<(PathBuf, ConfigSource)> {
-    let mut current = env::current_dir()?;
+    let current_dir = std::env::current_dir()?;
+    let mut path = current_dir.as_path();
 
     loop {
-        // 1. pyproject.toml with any [tool.zetten.*] section
-        let pyproject = current.join("pyproject.toml");
-        if pyproject.exists() && pyproject_has_zetten(&pyproject)? {
-            return Ok((
-                current.clone(),
-                ConfigSource::PyProjectToml(pyproject),
-            ));
+        // 1. Check for pyproject.toml (Priority 1)
+        let pyproject = path.join("pyproject.toml");
+        if pyproject.exists() {
+            // Only use it if it contains [tool.zetten] logic 
+            // (the config loader will verify the section exists)
+            return Ok((path.to_path_buf(), ConfigSource::PyProjectToml(pyproject)));
         }
 
-        // 2. zetten.toml
-        let zetten = current.join("zetten.toml");
+        // 2. Check for zetten.toml (Priority 2)
+        let zetten = path.join("zetten.toml");
         if zetten.exists() {
-            return Ok((current.clone(), ConfigSource::ZettenToml(zetten)));
+            return Ok((path.to_path_buf(), ConfigSource::ZettenToml(zetten)));
         }
 
-        // Stop at filesystem root
-        if !current.pop() {
-            break;
+        // Move up the directory tree
+        match path.parent() {
+            Some(parent) => path = parent,
+            None => break,
         }
     }
 
-    Err(anyhow!("NO_ZETTEN_CONFIG"))
+    Err(anyhow!(
+        "USER_ERROR: No Zetten configuration found. \n\
+         Please create a zetten.toml or add [tool.zetten] to your pyproject.toml."
+    ))
 }
 
-fn pyproject_has_zetten(path: &PathBuf) -> Result<bool> {
-    let contents = fs::read_to_string(path)?;
-    let value: toml::Value = toml::from_str(&contents)?;
+/// Resolves the OS-specific global configuration path.
+/// - Windows: C:\Users\Name\AppData\Roaming\zetten\zetten\config\zetten.toml
+/// - macOS:   /Users/Name/Library/Application Support/com.zetten.zetten/zetten.toml
+/// - Linux:   /home/name/.config/zetten/zetten.toml
+pub fn get_global_config_path() -> Option<PathBuf> {
+    ProjectDirs::from("com", "zetten", "zetten").and_then(|dirs| {
+        let path = dirs.config_dir().join("zetten.toml");
+        if path.exists() {
+            Some(path)
+        } else {
+            None
+        }
+    })
+}
 
-    Ok(
-        value
-            .get("tool")
-            .and_then(|t| t.get("zetten"))
-            .is_some(),
-    )
+/// Utility to check if a specific path is within the project root
+pub fn is_path_in_root(target: &Path, root: &Path) -> bool {
+    target.starts_with(root)
 }

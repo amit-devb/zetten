@@ -1,31 +1,45 @@
-// use crate::runner::ExecutionResult;
+use colored::*;
 
-/// Print a user-facing info message
 pub fn info(msg: &str) {
-    println!("{}", msg);
+    println!("{} {}", "ℹ".blue().bold(), msg);
 }
 
-/// Print a success message for a task
-pub fn task_ok(task: &str, cached: bool) {
-    if cached {
-        println!("✓ {} (cached)", task);
-    } else {
-        println!("✓ {}", task);
-    }
-}
-
-/// Print a failure message for a task
-pub fn task_fail(task: &str, code: i32) {
-    eprintln!("✗ {} (exit code {})", task, code);
-}
-
-/// Print a user-facing error message
 pub fn user_error(msg: &str) {
-    eprintln!("Error:\n{}", msg);
+    println!("{} {}", "✗".red().bold(), msg.red());
 }
 
-// Print command output (used later for CI / verbose mode)
-// pub fn print_task_output(_task: &str, _result: &ExecutionResult) {
-//     // Intentionally empty for now.
-//     // Will be used when adding verbose / CI output.
-// }
+pub fn task_ok(name: &str, cached: bool) {
+    let status = if cached {
+        "cached".dimmed()
+    } else {
+        "ok".green()
+    };
+    println!("{} {} ({})", "✔".green().bold(), name, status);
+}
+
+pub fn task_fail(name: &str, code: i32) {
+    println!("{} {} (exit code {})", "✗".red().bold(), name, code);
+}
+
+pub fn suggestion(task: &str, msg: &str) {
+    println!(
+        "\n{} {} '{}' suggested fix:",
+        "💡".yellow(),
+        "Tip for".blue().bold(),
+        task.yellow()
+    );
+    println!("   {}\n", msg.cyan().italic());
+}
+
+pub fn did_you_mean(target: &str, suggestion: &str) {
+    println!(
+        "\n{} '{}' is not a recognized command.",
+        "❓ Unknown:".yellow().bold(),
+        target.red()
+    );
+    println!(
+        "{} Did you mean '{}'?\n",
+        "💡 Suggestion:".cyan().bold(),
+        suggestion.green().bold()
+    );
+}
