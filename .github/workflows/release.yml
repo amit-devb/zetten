@@ -61,11 +61,19 @@ jobs:
           path: all-dist
           pattern: artifacts-*
           merge-multiple: true
+      - name: Generate Changelog
+        uses: orhun/git-cliff-action@v3
+        with:
+          config: cliff.toml
+          args: --latest --strip header
+        env:
+          OUTPUT: RELEASE_NOTES.md
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
+          body_path: RELEASE_NOTES.md # Use the generated changelog
           files: all-dist/*
-          generate_release_notes: true
+          # generate_release_notes: true # We turn this off because cliff is better
 
   publish_pypi:
     needs: github_release
