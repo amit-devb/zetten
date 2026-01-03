@@ -8,7 +8,6 @@ All notable changes to the Zetten task runner will be documented in this file.
 ### 🚀 Features
 - **Variable Engine**: Implemented 3-tier resolution (CLI > TOML > Environment).
 - **Fallback Syntax**: Support for `${VAR:-default}` for optional configurations.
-- **Strict Mode**: Validation that halts execution if required placeholders are missing.
 - **Worker Pool**: High-performance parallel execution using Kahn's algorithm.
 - **Process Registry**: Global signal handling to prevent zombie subprocesses.
 - **Critical Path Analysis**: Post-run analytics to identify task bottlenecks.
