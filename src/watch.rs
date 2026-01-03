@@ -4,6 +4,7 @@ use notify::{Config as NotifyConfig, RecommendedWatcher, RecursiveMode, Watcher,
 use std::path::{Path, PathBuf};
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
+use std::collections::HashMap;
 use colored::*;
 
 pub fn run(initial_config: &Config, task_names: &[String]) -> Result<()> {
@@ -11,17 +12,15 @@ pub fn run(initial_config: &Config, task_names: &[String]) -> Result<()> {
     let (tx, rx) = mpsc::channel();
     let mut watcher = RecommendedWatcher::new(tx, NotifyConfig::default())?;
     
-    // We clone the initial config to own it, allowing us to swap it later
-    // This variable now owns the data.
     let mut current_config: Config = initial_config.clone();
 
-    // 1. Initial setup using the borrow
+    // Initial setup
     setup_watcher(&mut watcher, &current_config, task_names)?;
 
     crate::log::info("Precision Watch active. Waiting for changes...");
     
-    // Initial run
-    let _ = crate::run_tasks(task_names.to_vec(), "auto".to_string(), false, vec![], None);
+    // Initial run - Added empty HashMap for Argument #6
+    let _ = crate::run_tasks(task_names.to_vec(), "auto".to_string(), false, vec![], None, HashMap::new());
 
     let mut last_event_time = Instant::now();
     let debounce_duration = Duration::from_millis(300);
@@ -53,21 +52,18 @@ pub fn run(initial_config: &Config, task_names: &[String]) -> Result<()> {
                         if config_file_changed {
                             println!("\n{}", "⚙️ Configuration change detected. Reloading...".bold().magenta());
                             if let Ok(new_cfg) = Config::load(&source) {
-                                // Overwrite the owned value
                                 current_config = new_cfg;
-                                // Re-setup with the updated config reference
                                 let _ = setup_watcher(&mut watcher, &current_config, task_names);
                                 crate::log::info("Config reloaded successfully.");
                             }
                         }
 
-                        // --- THE FIX IS HERE ---
-                        // We must pass a reference to the owned current_config
                         let affected = identify_affected(&current_config, task_names, &project_paths);
                         
                         if !affected.is_empty() {
                             println!("\n{}", "🔄 Changes detected. Re-running affected tasks...".bold().cyan());
-                            let _ = crate::run_tasks(affected, "auto".to_string(), false, vec![], None);
+                            // Re-run call - Added empty HashMap for Argument #6
+                            let _ = crate::run_tasks(affected, "auto".to_string(), false, vec![], None, HashMap::new());
                         }
                     }
                     pending_paths.clear();

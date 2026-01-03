@@ -3,6 +3,7 @@ use inquire::Select;
 use crate::config::Config;
 use crate::root;
 use std::env;
+use std::collections::HashMap;
 use crate::templates::TEMPLATES;
 
 pub fn select_template() -> Result<String> {
@@ -15,7 +16,6 @@ pub fn select_template() -> Result<String> {
     let chosen_name = ans.split_whitespace().next().unwrap_or("python").to_string();
     Ok(chosen_name)
 }
-
 
 pub fn show_selector() -> Result<()> {
     // 1. Find project and load config
@@ -40,8 +40,8 @@ pub fn show_selector() -> Result<()> {
     match ans {
         Ok(choice) => {
             println!("Selected: {}", choice);
-            // Call the shared runner in main.rs
-            crate::run_tasks(vec![choice], "auto".to_string(), false, vec![], None)
+            // Argument #6: HashMap::new() ensures the 3-tier system has a map to check
+            crate::run_tasks(vec![choice], "auto".to_string(), false, vec![], None, HashMap::new())
         }
         Err(_) => {
             println!("Exited.");
