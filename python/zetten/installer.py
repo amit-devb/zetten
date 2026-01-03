@@ -62,8 +62,7 @@ def install():
         if os.name != "nt":
             os.chmod(target, 0o755)
         
-        print(f"✔ Zetten v1.0.7 installed successfully to {target}")
-
+        print(f"✔ Zetten v1.0.8 installed successfully to {target}")
     except Exception as e:
         print(f"✘ Installation failed: {e}")
         if os.path.exists(tmp_bin): os.remove(tmp_bin)
