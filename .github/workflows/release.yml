@@ -54,36 +54,18 @@ jobs:
     name: Create GitHub Release
     needs: build
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Download all artifacts
+      - name: Download All Artifacts
         uses: actions/download-artifact@v4
         with:
           path: all-dist
           pattern: artifacts-*
           merge-multiple: true
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Install git-cliff
-        run: |
-          cargo install cargo-binstall
-          cargo binstall git-cliff@2.6.1 --no-confirm
-
-      - name: Generate release notes
-        run: git-cliff --latest --strip header -o RELEASE_NOTES.md
-
-      - name: Verify release notes
-        run: test -s RELEASE_NOTES.md
-
-      - name: Create GitHub Release
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          body_path: RELEASE_NOTES.md
           files: all-dist/*
+          generate_release_notes: true
 
   publish_pypi:
     needs: github_release
