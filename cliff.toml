@@ -1,0 +1,30 @@
+[changelog]
+# Body template for the GitHub Release UI
+body = """
+{% if group %}
+### {{ group | upper_first }}
+{% endif %}\
+- {{ commit.message | upper_first }} ({{ commit.id | truncate(length=7, end="") }})\
+"""
+# Removes the "v" prefix from tags for cleaner headers if needed
+trim_title = true
+
+[git]
+# Conventional Commits parsing
+# This maps your commit prefixes to headers in the release notes
+commit_parsers = [
+    { message = "^feat", group = "🚀 Features" },
+    { message = "^fix", group = "🐛 Bug Fixes" },
+    { message = "^perf", group = "⚡ Performance" },
+    { message = "^doc", group = "📚 Documentation" },
+    { message = "^refactor", group = "🛠 Refactor" },
+    { message = "^test", group = "🧪 Testing" },
+    { message = "^chore", group = "⚙️ Miscellaneous" },
+    { message = "^revert", skip = true },
+]
+# If a commit doesn't match the patterns above, it goes into "Miscellaneous"
+filter_commits = false
+# Sort commits within each group by oldest first
+sort_commits = "oldest"
+# Ignore "merge" commits to keep the list clean
+filter_protected_refs = true

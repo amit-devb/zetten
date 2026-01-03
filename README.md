@@ -7,7 +7,7 @@
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/zetten?color=blue&label=python)](https://pypi.org/project/zetten/)
 [![CI Status](https://img.shields.io/github/check-runs/amit-devb/zetten/main?label=CI&logo=github)](https://github.com/amit-devb/zetten/actions)
 
-Zetten is a dependency-aware execution engine designed to unify how you run tests, linters, and builds. It ensures that your workflow remains identical across local development environments and any CI platform-only faster.
+Zetten is a dependency-aware execution engine designed to unify how you run tests, linters, and builds. It ensures that your workflow remains identical across local development environments and any CI platform, only faster.
 
 ---
 
@@ -16,6 +16,7 @@ Zetten is a dependency-aware execution engine designed to unify how you run test
 Modern Python projects often require coordinating various tools (tests, type-checkers, formatters). Zetten eliminates "Glue Code Fatigue" by providing:
 
 * **Parallel Execution:** Automatically identifies independent tasks and runs them concurrently across your CPU cores.
+* **Three-Tier Variable:** System: Advanced command templating with a strict priority hierarchy: CLI Flags (-k) > Config Vars > Environment Variables.
 * **Smart Caching:** Uses content-addressable hashing to skip tasks if their specific inputs haven't changed since the last run.
 * **Platform Agnostic:** Behaves identically on macOS, Windows, Linux, or any CI/CD provider.
 * **Dependency Awareness:** Define a Directed Acyclic Graph (DAG) of tasks to ensure correct execution order (e.g., `setup` always precedes `test`).
@@ -50,13 +51,20 @@ Define tasks in pyproject.toml:
 [tool.zetten.tasks.lint]
 cmd = "ruff check src"
 inputs = ["src/"]
-tags = ["ci", "pre-commit"]
+tags = ["ci"]
 
 [tool.zetten.tasks.test]
 cmd = "pytest"
 depends_on = ["lint"]
 inputs = ["src/", "tests/"]
 tags = ["ci"]
+
+[tool.zetten.tasks.build]
+description = "Build the project"
+# Supports Fallback Syntax: ${VAR:-default}
+cmd = "mkdir -p ${build_dir} && python -m build --outdir ${DEST:-dist}"
+depends_on = ["lint"]
+inputs = ["src/"]
 ```
 
 Define tasks in zetten.toml:
@@ -85,15 +93,22 @@ Zetten will only re-run tasks when their inputs change.
 
 ---
 
+## ⚙️ The Variable Hierarchy
+Zetten uses a deterministic three-tier system to resolve variables:
+- Tier 1 (CLI): zetten run build -k build_dir=output (Highest Priority)
+- Tier 2 (Config): Values defined in [tool.zetten.vars]
+- Tier 3 (Env): System environment variables (e.g., $USER, $PATH)
+
+---
 
 ## 🚀 Running in CI
-Zetten is designed to be the single entry point for your CI pipelines. By using Tags, you can control exactly what runs without complex YAML logic.
-Order of Execution: If you run zetten run --tag ci, Zetten calculates the dependency tree:
+Zetten is designed for the modern CI/CD pipeline. By using Tags and Strict Mode, you can ensure your pipeline is both flexible and safe.
+```bash
+# Force a specific version and environment in CI
+zetten run --tag ci -k VERSION=${GITHUB_SHA} -k ENV=prod
+```
 
-- It identifies tasks with no dependencies (e.g., lint).
-- It executes them in parallel.
-- Once lint succeeds, it "unlocks" and runs the test.
-- Skipping: If the files in src/ haven't changed since the last CI run (and you persist the .zetten folder), Zetten will skip execution and return immediately.
+If a foundational task fails, Zetten halts downstream execution immediately to save CI minutes and prevent cascading failures.
 
 
 ## ⚙️ Configuration Model
@@ -106,17 +121,18 @@ Configuration lives in:
 - pyproject.toml (preferred)
 - zetten.toml (for legacy or minimal projects)
 
-If no configuration is found, Zetten will explain how to fix it.
+If no configuration is found, Zetten will explain how to resolve the issue.
 
 ---
 
 
 ## 🛠 Commands
-- zetten run <tasks> — execute tasks deterministically
-- zetten watch <tasks> — re-run tasks on input changes
-- zetten graph — inspect the task dependency graph
-- zetten doctor — diagnose configuration and environment issues
-- All commands produce stable, CI-safe output with well-defined exit codes.
+- zetten run <tasks> — Execute tasks with parallel dependency resolution.
+- zetten run <task> -k KEY=VAL — Override any variable via the CLI.
+- zetten watch <tasks> — Precision re-runs on input changes.
+- zetten graph — Visualizes the Directed Acyclic Graph (DAG) of your tasks.
+- zetten doctor — Diagnoses configuration and environmental health issues.
+- zetten init — Interactive project setup and template generation.
 
 ---
 

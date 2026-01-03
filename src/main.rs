@@ -10,8 +10,8 @@ mod root;
 mod runner;
 mod templates;
 mod tui;
-mod watch;
 mod validator;
+mod watch;
 
 use crate::progress::Progress;
 use anyhow::{anyhow, Result};
@@ -24,7 +24,6 @@ use colored::*;
 use config::Config;
 use lazy_static::lazy_static;
 use runner::{execute_task_command, ExecutionResult};
-use validator::validate_execution_env;
 use std::process::Child;
 use std::{
     collections::{HashMap, HashSet, VecDeque},
@@ -34,14 +33,14 @@ use std::{
     thread,
     time::{Duration, Instant},
 };
+use validator::validate_execution_env;
 
 lazy_static! {
-    // This registry holds handles to all currently running subprocesses
     static ref PROCESS_REGISTRY: Arc<Mutex<Vec<Child>>> = Arc::new(Mutex::new(Vec::new()));
 }
 
 fn main() -> anyhow::Result<()> {
-    // 1. Pillar 2: Setup Graceful Shutdown
+    // 1. Pillar 2: Graceful Shutdown
     ctrlc::set_handler(move || {
         println!(
             "\n{}",
@@ -49,19 +48,16 @@ fn main() -> anyhow::Result<()> {
                 .red()
                 .bold()
         );
-
-        // Lock the registry and kill every active child
         if let Ok(mut registry) = PROCESS_REGISTRY.lock() {
             for mut child in registry.drain(..) {
                 let _ = child.kill();
             }
         }
-
         println!("{}", "✔ Cleanup complete. Exiting.".yellow());
         std::process::exit(130);
     })?;
 
-    // 2. CLI Parsing & Suggestions
+    // 2. CLI Parsing
     let cli = match Cli::try_parse() {
         Ok(c) => c,
         Err(e) => {
@@ -86,12 +82,10 @@ fn main() -> anyhow::Result<()> {
         }
     };
 
-    // 3. Environment Setup
     if Path::new(".env").exists() && dotenvy::dotenv().is_ok() {
         crate::log::info("Environment variables loaded from .env");
     }
 
-    // 4. Execution
     if let Err(e) = run_main(cli) {
         let msg = e.to_string();
         if msg.starts_with("USER_ERROR:") {
@@ -102,7 +96,6 @@ fn main() -> anyhow::Result<()> {
         std::process::exit(1);
     }
 
-    // 5. THE FIX: Return Ok to satisfy the Result<()> return type
     Ok(())
 }
 
@@ -149,24 +142,24 @@ pub fn run_main(cli: Cli) -> Result<()> {
             tasks,
             workers,
             dry_run,
+            kv,
             args,
             tag,
         } => {
             if tasks.is_empty() && tag.is_none() {
                 tui::show_selector()
             } else {
-                run_tasks(tasks, workers, dry_run, args, tag)
+                // Convert CLI Vec to HashMap for the merger
+                let cli_vars: HashMap<String, String> = kv.into_iter().collect();
+                run_tasks(tasks, workers, dry_run, args, tag, cli_vars)
             }
         }
         Command::Watch { tasks } => {
             let (root, source) = root::find_project_root()?;
             env::set_current_dir(&root)?;
             let config = Config::load(&source)?;
-            // If no specific tasks provided to watch, watch all tasks or show error
             if tasks.is_empty() {
-                return Err(anyhow!(
-                    "USER_ERROR: Please specify which tasks to watch (e.g., 'zetten watch test')"
-                ));
+                return Err(anyhow!("USER_ERROR: Please specify which tasks to watch"));
             }
             watch::run(&config, &tasks)
         }
@@ -196,6 +189,7 @@ pub(crate) fn run_tasks(
     dry_run: bool,
     args: Vec<String>,
     tag_filter: Option<String>,
+    cli_vars: HashMap<String, String>, // Added
 ) -> Result<()> {
     let (root, source) =
         root::find_project_root().map_err(|_| anyhow!("USER_ERROR: Not a project root."))?;
@@ -204,44 +198,63 @@ pub(crate) fn run_tasks(
     let config = Arc::new(Config::load(&source)?);
     config.validate()?;
 
-    // ... (Keep existing env var and tag filter logic) ...
-    for arg in &args {
-        if let Some((k, v)) = arg.split_once('=') {
-            env::set_var(k, v);
-        }
-    }
+    // --- NEW: THREE-TIER VARIABLE MERGE ---
+    let mut all_vars = HashMap::new();
+    for (k, v) in env::vars() {
+        all_vars.insert(k, v);
+    } // Tier 3
+    for (k, v) in &config.vars {
+        all_vars.insert(k.clone(), v.clone());
+    } // Tier 2
+    for (k, v) in cli_vars {
+        all_vars.insert(k, v);
+    } // Tier 1 (Winner)
+    let all_vars = Arc::new(all_vars);
 
     let mut root_tasks = tasks;
     if let Some(ref t) = tag_filter {
-        let tagged: Vec<String> = config.tasks.iter()
+        let tagged: Vec<String> = config
+            .tasks
+            .iter()
             .filter(|(_, c)| c.tags.contains(t))
-            .map(|(n, _)| n.clone()).collect();
+            .map(|(n, _)| n.clone())
+            .collect();
         root_tasks.extend(tagged);
     }
 
     let task_names = collect_tasks(&config, &root_tasks)?;
-    // We do this before starting threads or progress bars!
     crate::log::info("🔍 Validating environment...");
     if let Err(e) = validate_execution_env(&config, &task_names) {
         crate::log::user_error(&format!("Validation failed: {}", e));
         std::process::exit(1);
     }
+
     if dry_run {
         crate::log::info("🌵 Dry Run Plan:");
         for n in &task_names {
-            println!("  [{}] {}", n, config.tasks[n].resolve_cmd(&args));
+            println!(
+                "  [{}] {}",
+                n,
+                config.tasks[n].resolve_cmd(&args, &all_vars)
+            );
         }
         return Ok(());
     }
 
-    let workers_count = if workers == "auto" { num_cpus::get() } else { workers.parse()? };
+    let workers_count = if workers == "auto" {
+        num_cpus::get()
+    } else {
+        workers.parse()?
+    };
     let is_parallel = task_names.len() > 1 && workers_count > 1;
     let mut summary = RunSummary::new();
 
-    // --- Graph Logic (Kahn's) remains the same ---
+    // --- Kahn's Algorithm Setup ---
     let mut indegree: HashMap<String, usize> = HashMap::new();
     let mut graph_map: HashMap<String, Vec<String>> = HashMap::new();
-    for n in &task_names { indegree.insert(n.clone(), 0); }
+    for n in &task_names {
+        indegree.insert(n.clone(), 0);
+    }
     for n in &task_names {
         for dep in &config.tasks[n].depends_on {
             if indegree.contains_key(dep) {
@@ -252,9 +265,12 @@ pub(crate) fn run_tasks(
     }
 
     let mut ready = VecDeque::new();
-    for (t, &deg) in &indegree { if deg == 0 { ready.push_back(t.clone()); } }
+    for (t, &deg) in &indegree {
+        if deg == 0 {
+            ready.push_back(t.clone());
+        }
+    }
 
-    // --- PILLAR 3: Setup Progress Bar ---
     let progress = Arc::new(Progress::new(task_names.len()));
     let (tx, rx) = mpsc::channel::<Result<(String, ExecutionResult, bool)>>();
     let work_queue = Arc::new(Mutex::new(VecDeque::<String>::new()));
@@ -266,44 +282,61 @@ pub(crate) fn run_tasks(
         let p = Arc::clone(&progress);
         let cfg = Arc::clone(&config);
         let f_args = args.clone();
+        let vars = Arc::clone(&all_vars); // Clone the Arc for the thread
 
         thread::spawn(move || loop {
             let task_name = {
                 let mut lock = q.lock().unwrap();
                 match lock.pop_front() {
                     Some(name) => name,
-                    None => { drop(lock); thread::sleep(Duration::from_millis(10)); continue; }
+                    None => {
+                        drop(lock);
+                        thread::sleep(Duration::from_millis(10));
+                        continue;
+                    }
                 }
             };
 
             let task_cfg = cfg.tasks.get(&task_name).unwrap();
-            let final_cmd = task_cfg.resolve_cmd(&f_args);
+            let final_cmd = task_cfg.resolve_cmd(&f_args, &vars); // Resolved with hierarchy
 
-            // PILLAR 3: Start UI Track
-            if is_parallel { p.start_task(&task_name); }
+            if is_parallel {
+                p.start_task(&task_name);
+            }
 
             let res: Result<(ExecutionResult, bool)> = (|| {
                 let cache_path = format!(".zetten/cache/{}.hash", task_name);
                 if !task_cfg.inputs.is_empty() && f_args.is_empty() {
                     let hash = compute_hash(&task_cfg.inputs)?;
-                    if fs::read_to_string(&cache_path).map(|s| s == hash).unwrap_or(false) {
-                        return Ok((ExecutionResult { is_success: true, ..Default::default() }, true));
+                    if fs::read_to_string(&cache_path)
+                        .map(|s| s == hash)
+                        .unwrap_or(false)
+                    {
+                        return Ok((
+                            ExecutionResult {
+                                is_success: true,
+                                ..Default::default()
+                            },
+                            true,
+                        ));
                     }
-                    // PILLAR 2: Run with Registry & Output Protection
-                    let exec = execute_task_command(&final_cmd, &task_cfg.allow_exit_codes, is_parallel)?;
+                    let exec =
+                        execute_task_command(&final_cmd, &task_cfg.allow_exit_codes, is_parallel)?;
                     if exec.is_success {
                         let _ = fs::create_dir_all(".zetten/cache");
                         let _ = fs::write(cache_path, hash);
                     }
                     Ok((exec, false))
                 } else {
-                    let exec = execute_task_command(&final_cmd, &task_cfg.allow_exit_codes, is_parallel)?;
+                    let exec =
+                        execute_task_command(&final_cmd, &task_cfg.allow_exit_codes, is_parallel)?;
                     Ok((exec, false))
                 }
             })();
 
-            // PILLAR 3: Finish UI Track
-            if is_parallel { p.finish_task(); }
+            if is_parallel {
+                p.finish_task();
+            }
             let _ = t_tx.send(res.map(|(e, c)| (task_name, e, c)));
         });
     }
@@ -321,7 +354,6 @@ pub(crate) fn run_tasks(
         summary.task_metrics.insert(finished.clone(), exec.duration);
         let task_cfg = config.tasks.get(&finished).unwrap();
 
-        // PILLAR 3: Suspend bar for clean logging
         let mut log_action = || {
             if exec.is_success || task_cfg.ignore_errors {
                 if !exec.is_success {
@@ -338,23 +370,30 @@ pub(crate) fn run_tasks(
                 summary.failed += 1;
                 exit_code = exec.exit_code;
                 crate::log::task_fail(&finished, exec.exit_code);
-                
-                // Show captured output on failure (Pillar 3 clarity)
                 if is_parallel {
-                    if !exec.stdout.is_empty() { println!("{}", String::from_utf8_lossy(&exec.stdout)); }
-                    if !exec.stderr.is_empty() { eprintln!("{}", String::from_utf8_lossy(&exec.stderr)); }
+                    if !exec.stdout.is_empty() {
+                        println!("{}", String::from_utf8_lossy(&exec.stdout));
+                    }
+                    if !exec.stderr.is_empty() {
+                        eprintln!("{}", String::from_utf8_lossy(&exec.stderr));
+                    }
                 }
-
-                if let Some(h) = task_cfg.hint.as_ref() { crate::log::suggestion(&finished, h); }
+                if let Some(h) = task_cfg.hint.as_ref() {
+                    crate::log::suggestion(&finished, h);
+                }
             }
         };
 
-        if is_parallel { progress.pb.suspend(log_action); } else { log_action(); }
+        if is_parallel {
+            progress.pb.suspend(log_action);
+        } else {
+            log_action();
+        }
 
-        // Break logic if failed
-        if !exec.is_success && !task_cfg.ignore_errors { break; }
+        if !exec.is_success && !task_cfg.ignore_errors {
+            break;
+        }
 
-        // Unlock dependents
         if let Some(children) = graph_map.get(&finished) {
             for child in children {
                 let deg = indegree.get_mut(child).unwrap();
@@ -367,12 +406,17 @@ pub(crate) fn run_tasks(
         }
     }
 
-    if is_parallel { progress.pb.finish_and_clear(); }
+    if is_parallel {
+        progress.pb.finish_and_clear();
+    }
     print_summary(&summary, &config, &task_names);
-    if exit_code != 0 { std::process::exit(exit_code); }
+    if exit_code != 0 {
+        std::process::exit(exit_code);
+    }
     Ok(())
 }
 
+// --- Summary & Logic Helpers (Preserved) ---
 struct RunSummary {
     succeeded: usize,
     cached: usize,
@@ -400,7 +444,6 @@ fn find_critical_path(
     task_names: &[String],
 ) -> (Vec<String>, Duration) {
     let mut cache: HashMap<String, (Vec<String>, Duration)> = HashMap::new();
-
     fn compute_path(
         node: &str,
         config: &Config,
@@ -410,11 +453,9 @@ fn find_critical_path(
         if let Some(res) = cache.get(node) {
             return res.clone();
         }
-
         let current_dur = *metrics.get(node).unwrap_or(&Duration::ZERO);
         let mut best_path = vec![node.to_string()];
         let mut max_dep_dur = Duration::ZERO;
-
         if let Some(task_cfg) = config.tasks.get(node) {
             for dep in &task_cfg.depends_on {
                 let (path, dur) = compute_path(dep, config, metrics, cache);
@@ -426,15 +467,12 @@ fn find_critical_path(
                 }
             }
         }
-
         let res = (best_path, current_dur + max_dep_dur);
         cache.insert(node.to_string(), res.clone());
         res
     }
-
     let mut longest_path = Vec::new();
     let mut max_total = Duration::ZERO;
-
     for task in task_names {
         let (path, dur) = compute_path(task, config, metrics, &mut cache);
         if dur > max_total {
@@ -442,19 +480,17 @@ fn find_critical_path(
             longest_path = path;
         }
     }
-
     (longest_path, max_total)
 }
 
 fn print_summary(s: &RunSummary, config: &Config, task_names: &[String]) {
     let total_wall = s.start_time.elapsed();
-    let total_work: std::time::Duration = s.task_metrics.values().sum();
+    let total_work: Duration = s.task_metrics.values().sum();
     let saved = if total_work > total_wall {
         total_work - total_wall
     } else {
-        std::time::Duration::ZERO
+        Duration::ZERO
     };
-
     println!("\n{}", "Summary:".bold());
     println!(
         "  {} succeeded, {} cached, {} warned, {} failed",
@@ -463,14 +499,11 @@ fn print_summary(s: &RunSummary, config: &Config, task_names: &[String]) {
         s.warned.to_string().yellow(),
         s.failed.to_string().red()
     );
-
     println!(
         "  Total time: {:.2?} ({} saved via parallelism)",
         total_wall,
         format!("{:.2?}", saved).yellow().bold()
     );
-
-    // Only show critical path if tasks actually ran
     if !s.task_metrics.is_empty() {
         let (path, _) = find_critical_path(config, &s.task_metrics, task_names);
         if path.len() > 1 {
@@ -503,7 +536,6 @@ fn collect_tasks(config: &Config, roots: &[String]) -> Result<Vec<String>> {
     let mut sorted = Vec::new();
     let mut visited = HashSet::new();
     let mut visiting = HashSet::new();
-
     fn visit(
         n: &str,
         cfg: &Config,

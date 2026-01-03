@@ -29,6 +29,10 @@ pub enum Command {
         #[arg(short, long, default_value = "auto")]
         workers: String,
 
+        /// Pass variables: --k key=value
+        #[arg(short = 'k', long = "key-value", value_parser = parse_key_val)]
+        kv: Vec<(String, String)>,
+
         /// Preview the execution plan without running commands
         #[arg(long)]
         dry_run: bool,
@@ -56,6 +60,12 @@ pub enum Command {
 
     /// Generate shell completions
     Completions { shell: Shell },
+}
+
+fn parse_key_val(s: &str) -> Result<(String, String), String> {
+    s.split_once('=')
+        .map(|(k, v)| (k.to_string(), v.to_string()))
+        .ok_or_else(|| format!("invalid format: '{}' (use key=value)", s))
 }
 
 #[derive(ValueEnum, Clone, Debug)]
