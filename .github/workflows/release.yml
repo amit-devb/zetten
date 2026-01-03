@@ -61,19 +61,25 @@ jobs:
           path: all-dist
           pattern: artifacts-*
           merge-multiple: true
-      - name: Generate Changelog
-        uses: orhun/git-cliff-action@v3
+      - name: Install git-cliff
+        run: |
+          curl -L https://github.com/orhun/git-cliff/releases/latest/download/git-cliff-x86_64-unknown-linux-gnu.tar.gz \
+          | tar xz
+          sudo mv git-cliff /usr/local/bin/
+
+      - name: Generate changelog
+        run: git-cliff --latest --strip header -o RELEASE_NOTES.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          config: cliff.toml
-          args: --latest --strip header
-        env:
-          OUTPUT: RELEASE_NOTES.md
+          body_path: RELEASE_NOTES.md
+          files: all-dist/*
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          body_path: RELEASE_NOTES.md # Use the generated changelog
           files: all-dist/*
-          # generate_release_notes: true # We turn this off because cliff is better
+          generate_release_notes: true
 
   publish_pypi:
     needs: github_release
