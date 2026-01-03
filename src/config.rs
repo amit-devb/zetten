@@ -11,7 +11,7 @@ lazy_static! {
     static ref RE_VAR_PLAIN: Regex = Regex::new(r"\$\{([^}]+)\}").unwrap();
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct Config {
     pub tasks: HashMap<String, TaskConfig>,
 }
@@ -34,6 +34,9 @@ pub struct TaskConfig {
 
     #[serde(default)]
     pub depends_on: Vec<String>,
+
+    #[serde(default)]
+    pub ignore_errors: bool,
 }
 
 fn default_description() -> String {

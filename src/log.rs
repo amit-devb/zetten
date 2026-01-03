@@ -43,3 +43,7 @@ pub fn did_you_mean(target: &str, suggestion: &str) {
         suggestion.green().bold()
     );
 }
+
+pub fn warn(msg: &str) {
+    println!("{} {}", "󱇎 Warning:".yellow().bold(), msg);
+}

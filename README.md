@@ -1,60 +1,38 @@
-# Zetten
-Zetten is a fast, deterministic task runner for Python backend projects, written in Rust.
-It provides a reliable way to run common backend tasks - tests, linters, type checks, builds - using a single execution engine that behaves the same locally and in CI.
-Zetten replaces ad-hoc setups built from Makefiles, shell scripts, nox/tox, and CI YAML glue with a small, explicit, and predictable tool.
-Zetten is inspired by tools like make, nox, just, and cargo, but is designed specifically for modern Python backend workflows.
+# ⚡ Zetten
+
+**The High-Performance Task Runner for Python Backends.** *Parallel. Deterministic. Fast.*
+
+[![PyPI - Version](https://img.shields.io/pypi/v/zetten?color=orange&label=pypi)](https://pypi.org/project/zetten/)
+[![PyPI - License](https://img.shields.io/pypi/l/zetten?color=brightgreen&label=license)](https://github.com/amit-devb/zetten/blob/main/LICENSE)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/zetten?color=blue&label=python)](https://pypi.org/project/zetten/)
+[![CI Status](https://img.shields.io/github/check-runs/amit-devb/zetten/main?label=CI&logo=github)](https://github.com/amit-devb/zetten/actions)
+
+Zetten is a dependency-aware execution engine designed to unify how you run tests, linters, and builds. It ensures that your workflow remains identical across local development environments and any CI platform-only faster.
 
 ---
 
-## Why Zetten
-Python backend projects often rely on a mix of:
-- Makefiles
-- shell scripts
-- tox / nox
-- CI YAML logic
+## 🚀 The Zetten Philosophy
 
-These approaches are flexible, but they are often:
-- non-deterministic
-- slow as projects grow
-- hard to reason about
-- inconsistent between local runs and CI
+Modern Python projects often require coordinating various tools (tests, type-checkers, formatters). Zetten eliminates "Glue Code Fatigue" by providing:
 
-Zetten focuses on a small set of guarantees:
-- The same inputs always produce the same results
-- Tasks only run when their inputs change
-- Independent tasks run in parallel
-- Local and CI execution behave identically
+* **Parallel Execution:** Automatically identifies independent tasks and runs them concurrently across your CPU cores.
+* **Smart Caching:** Uses content-addressable hashing to skip tasks if their specific inputs haven't changed since the last run.
+* **Platform Agnostic:** Behaves identically on macOS, Windows, Linux, or any CI/CD provider.
+* **Dependency Awareness:** Define a Directed Acyclic Graph (DAG) of tasks to ensure correct execution order (e.g., `setup` always precedes `test`).
 
 ---
 
-## Features
-- Fast execution using a Rust-based core
-- Deterministic task caching based on input hashing
-- Python virtual environment awareness
-- Automatic environment detection without manual activation
-- Parallel task execution using a worker pool
-- Task dependency execution using a DAG model
-- Structured logging and progress reporting
-- Clear and consistent exit code semantics
+## ✨ Features
+
+- **⚡ Worker Pool Concurrency:** Maximizes resource usage by running non-dependent tasks in parallel.
+- **🏷️ CI Tagging:** Execute logical groups of tasks (e.g., `run --tag ci`) with a single command.
+- **🛡️ Failure Propagation:** If a foundational task fails, Zetten halts downstream execution to prevent cascading errors.
+- **🔍 Intelligent Diagnostics:** Includes `zetten doctor` to identify environment inconsistencies instantly.
+- **⏱️ Performance Analytics:** (Coming Soon) Real-time insights into time saved via parallelism.
 
 ---
 
-## What Zetten Is (and Is Not)
-### Zetten is
-- A task runner for Python backend projects
-- A local development and CI execution tool
-- Deterministic and cache-aware
-- CLI-first
-### Zetten is not
-- A framework
-- A workflow engine
-- A job queue
-- A replacement for linters or test frameworks
-- A runtime dependency of your application
-
----
-
-## Quick Start
+## 🛠️ Quick Start
 Install Zetten:
 
 ```bash
@@ -69,24 +47,33 @@ zetten init
 
 Define tasks in pyproject.toml:
 ```bash
-[tool.zetten.tasks.test]
-cmd = "pytest"
-inputs = ["src/", "tests/"]
-
 [tool.zetten.tasks.lint]
 cmd = "ruff check src"
 inputs = ["src/"]
+tags = ["ci", "pre-commit"]
+
+[tool.zetten.tasks.test]
+cmd = "pytest"
+depends_on = ["lint"]
+inputs = ["src/", "tests/"]
+tags = ["ci"]
 ```
 
 Define tasks in zetten.toml:
 ```bash
-[tasks.test]
-cmd = "pytest"
-inputs = ["src/", "tests/"]
+[tasks.setup]
+cmd = "pip install -r requirements.txt"
 
 [tasks.lint]
 cmd = "ruff check src"
 inputs = ["src/"]
+tags = ["ci"]
+
+[tasks.test]
+cmd = "pytest"
+depends_on = ["setup"]
+inputs = ["src/", "tests/"]
+tags = ["ci"]
 ```
 
 Run tasks:
@@ -98,7 +85,18 @@ Zetten will only re-run tasks when their inputs change.
 
 ---
 
-## Configuration Model
+
+## 🚀 Running in CI
+Zetten is designed to be the single entry point for your CI pipelines. By using Tags, you can control exactly what runs without complex YAML logic.
+Order of Execution: If you run zetten run --tag ci, Zetten calculates the dependency tree:
+
+- It identifies tasks with no dependencies (e.g., lint).
+- It executes them in parallel.
+- Once lint succeeds, it "unlocks" and runs the test.
+- Skipping: If the files in src/ haven't changed since the last CI run (and you persist the .zetten folder), Zetten will skip execution and return immediately.
+
+
+## ⚙️ Configuration Model
 Configuration is explicit by design:
 - No templating
 - No conditionals
@@ -113,7 +111,7 @@ If no configuration is found, Zetten will explain how to fix it.
 ---
 
 
-### Commands
+## 🛠 Commands
 - zetten run <tasks> — execute tasks deterministically
 - zetten watch <tasks> — re-run tasks on input changes
 - zetten graph — inspect the task dependency graph
@@ -122,9 +120,8 @@ If no configuration is found, Zetten will explain how to fix it.
 
 ---
 
-## Status
-Zetten is in v0.1 and is feature-complete for its initial design.
-Core semantics - execution, caching, exit codes, configuration - are stable.
+## 🛡 Status
+Zetten is currently in v0.1. If no configuration file is found, Zetten will provide clear instructions on how to initialize your project.
 
 ---
 
@@ -133,12 +130,12 @@ Full documentation is available at: [Github Wiki](https://github.com/amit-devb/z
 
 ---
 
-## Contributing and Feedback
-Zetten is intentionally minimal and opinionated.
-Feedback is welcome, especially around:
-- Developer experience
-- CI usage
-- Installation friction
-- Missing but essential workflows.
+## 🤝 Contributing
+We love Rust and Python! If you want to help make Zetten even faster:
+- Fork the repo.
+- Add your feature (don't forget the tests!).
+- Open a Pull Request.
+
+Built with ❤️ for the Python community using the speed of Rust.
   
 Please open an issue or discussion on GitHub before proposing large changes.

@@ -11,6 +11,7 @@ mod runner;
 mod templates;
 mod tui;
 mod watch;
+mod validator;
 
 use crate::progress::Progress;
 use anyhow::{anyhow, Result};
@@ -19,18 +20,48 @@ use clap::{CommandFactory, Parser};
 use clap_complete::{generate, shells};
 use cli::{Cli, Command};
 use colored::*;
-use config::{Config, TaskConfig};
-use runner::{run_command, ExecutionResult};
+
+use config::Config;
+use lazy_static::lazy_static;
+use runner::{execute_task_command, ExecutionResult};
+use validator::validate_execution_env;
+use std::process::Child;
 use std::{
     collections::{HashMap, HashSet, VecDeque},
     env, fs,
     path::Path,
     sync::{mpsc, Arc, Mutex},
     thread,
+    time::{Duration, Instant},
 };
 
-fn main() {
-    // 1. Intercept CLI errors to show custom help & suggestions
+lazy_static! {
+    // This registry holds handles to all currently running subprocesses
+    static ref PROCESS_REGISTRY: Arc<Mutex<Vec<Child>>> = Arc::new(Mutex::new(Vec::new()));
+}
+
+fn main() -> anyhow::Result<()> {
+    // 1. Pillar 2: Setup Graceful Shutdown
+    ctrlc::set_handler(move || {
+        println!(
+            "\n{}",
+            "🛑 Shutdown signal received! Cleaning up processes..."
+                .red()
+                .bold()
+        );
+
+        // Lock the registry and kill every active child
+        if let Ok(mut registry) = PROCESS_REGISTRY.lock() {
+            for mut child in registry.drain(..) {
+                let _ = child.kill();
+            }
+        }
+
+        println!("{}", "✔ Cleanup complete. Exiting.".yellow());
+        std::process::exit(130);
+    })?;
+
+    // 2. CLI Parsing & Suggestions
     let cli = match Cli::try_parse() {
         Ok(c) => c,
         Err(e) => {
@@ -48,21 +79,19 @@ fn main() {
                         crate::log::did_you_mean(&args[1], suggest);
                     }
                 }
-                let config = load_config_safe();
-                show_usage_guide(config.as_ref());
+                show_usage_guide(load_config_safe().as_ref());
                 std::process::exit(1);
             }
             e.exit();
         }
     };
 
-    // 2. FEATURE: Smart .env Auto-Loader
-    if Path::new(".env").exists() {
-        if dotenvy::dotenv().is_ok() {
-            crate::log::info("Environment variables loaded from .env");
-        }
+    // 3. Environment Setup
+    if Path::new(".env").exists() && dotenvy::dotenv().is_ok() {
+        crate::log::info("Environment variables loaded from .env");
     }
 
+    // 4. Execution
     if let Err(e) = run_main(cli) {
         let msg = e.to_string();
         if msg.starts_with("USER_ERROR:") {
@@ -72,6 +101,9 @@ fn main() {
         }
         std::process::exit(1);
     }
+
+    // 5. THE FIX: Return Ok to satisfy the Result<()> return type
+    Ok(())
 }
 
 fn load_config_safe() -> Option<Config> {
@@ -85,41 +117,27 @@ fn load_config_safe() -> Option<Config> {
 fn show_usage_guide(config: Option<&Config>) {
     println!("{}", "\n--- Zetten Usage Guide ---".bold().blue());
     println!("Usage: {} {}", "zetten".green(), "[COMMAND]".cyan());
-
-    println!("\n{}", "Standard Commands:".bold());
-    println!("  {: <12} Open task selector (TUI)", "(none)".dimmed());
-    println!("  {: <12} Run project tasks", "run".cyan());
-    println!("  {: <12} Watch files for changes", "watch".cyan());
-    println!("  {: <12} Diagnose project setup", "doctor".cyan());
-
     if let Some(cfg) = config {
         println!("\n{}", "Detected Tasks:".bold());
         let mut tasks: Vec<_> = cfg.tasks.keys().collect();
         tasks.sort();
-        for task in tasks.iter().take(5) {
-            println!(
-                "  - {: <12} {}",
-                task.yellow(),
-                cfg.tasks[*task].description
-            );
+        for t in tasks.iter().take(5) {
+            println!("  - {: <12} {}", t.yellow(), cfg.tasks[*t].description);
         }
     }
-    println!("");
 }
 
 pub fn run_main(cli: Cli) -> Result<()> {
     let command = match cli.command {
         Some(cmd) => cmd,
-        None => return tui::show_selector(), // Default TUI
+        None => return tui::show_selector(),
     };
 
     match command {
         Command::Tasks => {
-            let (root, source) =
-                root::find_project_root().map_err(|_| anyhow!("USER_ERROR: No project found."))?;
+            let (root, source) = root::find_project_root()?;
             env::set_current_dir(&root)?;
             let config = Config::load(&source)?;
-            crate::log::info("Available tasks:");
             let mut keys: Vec<_> = config.tasks.keys().collect();
             keys.sort();
             for name in keys {
@@ -127,7 +145,6 @@ pub fn run_main(cli: Cli) -> Result<()> {
             }
             Ok(())
         }
-        Command::Init { template } => init::init(template.as_deref().unwrap_or("interactive")),
         Command::Run {
             tasks,
             workers,
@@ -135,7 +152,6 @@ pub fn run_main(cli: Cli) -> Result<()> {
             args,
             tag,
         } => {
-            // If no tasks and no tag, open TUI
             if tasks.is_empty() && tag.is_none() {
                 tui::show_selector()
             } else {
@@ -146,15 +162,21 @@ pub fn run_main(cli: Cli) -> Result<()> {
             let (root, source) = root::find_project_root()?;
             env::set_current_dir(&root)?;
             let config = Config::load(&source)?;
+            // If no specific tasks provided to watch, watch all tasks or show error
+            if tasks.is_empty() {
+                return Err(anyhow!(
+                    "USER_ERROR: Please specify which tasks to watch (e.g., 'zetten watch test')"
+                ));
+            }
             watch::run(&config, &tasks)
         }
         Command::Doctor => doctor::run(),
         Command::Graph => {
             let (root, source) = root::find_project_root()?;
             env::set_current_dir(&root)?;
-            let config = Config::load(&source)?;
-            graph::run(&config)
+            graph::run(&Config::load(&source)?)
         }
+        Command::Init { template } => init::init(template.as_deref().unwrap_or("interactive")),
         Command::Completions { shell } => {
             let mut cmd = Cli::command();
             let bin = "zetten";
@@ -178,241 +200,186 @@ pub(crate) fn run_tasks(
     let (root, source) =
         root::find_project_root().map_err(|_| anyhow!("USER_ERROR: Not a project root."))?;
     env::set_current_dir(&root)?;
-    let config = Config::load(&source)?;
 
-    // 1. Validation Layer (Circular check and existence)
+    let config = Arc::new(Config::load(&source)?);
     config.validate()?;
 
+    // ... (Keep existing env var and tag filter logic) ...
     for arg in &args {
         if let Some((k, v)) = arg.split_once('=') {
             env::set_var(k, v);
         }
     }
 
-    // 2. CI Tagging Feature
     let mut root_tasks = tasks;
     if let Some(ref t) = tag_filter {
-        let tagged: Vec<String> = config
-            .tasks
-            .iter()
-            .filter(|(_, cfg)| cfg.tags.contains(t))
-            .map(|(name, _)| name.clone())
-            .collect();
-
-        if tagged.is_empty() {
-            return Err(anyhow!("USER_ERROR: No tasks found with tag '{}'", t));
-        }
+        let tagged: Vec<String> = config.tasks.iter()
+            .filter(|(_, c)| c.tags.contains(t))
+            .map(|(n, _)| n.clone()).collect();
         root_tasks.extend(tagged);
     }
 
-    // 3. Topological Ordering (Ensures depends_on is respected)
     let task_names = collect_tasks(&config, &root_tasks)?;
-    let total_tasks_count = task_names.len();
-
+    // We do this before starting threads or progress bars!
+    crate::log::info("🔍 Validating environment...");
+    if let Err(e) = validate_execution_env(&config, &task_names) {
+        crate::log::user_error(&format!("Validation failed: {}", e));
+        std::process::exit(1);
+    }
     if dry_run {
-        crate::log::info("🌵 Dry Run - Execution Plan:");
-        for name in &task_names {
-            println!(
-                "  [{}] {}",
-                name,
-                config.tasks.get(name).unwrap().resolve_cmd(&args)
-            );
+        crate::log::info("🌵 Dry Run Plan:");
+        for n in &task_names {
+            println!("  [{}] {}", n, config.tasks[n].resolve_cmd(&args));
         }
         return Ok(());
     }
 
-    let workers_count = if workers == "auto" {
-        num_cpus::get()
-    } else {
-        workers.parse()?
-    };
-    let is_parallel = total_tasks_count > 1 && workers_count > 1;
-
+    let workers_count = if workers == "auto" { num_cpus::get() } else { workers.parse()? };
+    let is_parallel = task_names.len() > 1 && workers_count > 1;
     let mut summary = RunSummary::new();
 
-    // 4. Execution Strategy: Kahn's Algorithm for Concurrency
+    // --- Graph Logic (Kahn's) remains the same ---
     let mut indegree: HashMap<String, usize> = HashMap::new();
     let mut graph_map: HashMap<String, Vec<String>> = HashMap::new();
-
-    for name in &task_names {
-        indegree.insert(name.clone(), 0);
-    }
-    for name in &task_names {
-        for dep in &config.tasks[name].depends_on {
+    for n in &task_names { indegree.insert(n.clone(), 0); }
+    for n in &task_names {
+        for dep in &config.tasks[n].depends_on {
             if indegree.contains_key(dep) {
-                *indegree.get_mut(name).unwrap() += 1;
-                graph_map.entry(dep.clone()).or_default().push(name.clone());
+                *indegree.get_mut(n).unwrap() += 1;
+                graph_map.entry(dep.clone()).or_default().push(n.clone());
             }
         }
     }
 
-    let mut ready_tasks = VecDeque::new();
-    for (t, &deg) in &indegree {
-        if deg == 0 {
-            ready_tasks.push_back(t.clone());
-        }
-    }
+    let mut ready = VecDeque::new();
+    for (t, &deg) in &indegree { if deg == 0 { ready.push_back(t.clone()); } }
 
-    let progress = Arc::new(Progress::new(total_tasks_count));
+    // --- PILLAR 3: Setup Progress Bar ---
+    let progress = Arc::new(Progress::new(task_names.len()));
     let (tx, rx) = mpsc::channel::<Result<(String, ExecutionResult, bool)>>();
-    let work_queue = Arc::new(Mutex::new(VecDeque::<WorkItem>::new()));
+    let work_queue = Arc::new(Mutex::new(VecDeque::<String>::new()));
 
-    // 5. Concurrency: Parallel Workers
+    // Spawn Workers
     for _ in 0..workers_count {
         let q = Arc::clone(&work_queue);
         let t_tx = tx.clone();
         let p = Arc::clone(&progress);
+        let cfg = Arc::clone(&config);
+        let f_args = args.clone();
 
         thread::spawn(move || loop {
-            let work = {
+            let task_name = {
                 let mut lock = q.lock().unwrap();
                 match lock.pop_front() {
-                    Some(w) => w,
-                    None => {
-                        drop(lock);
-                        thread::sleep(std::time::Duration::from_millis(10));
-                        continue;
-                    }
+                    Some(name) => name,
+                    None => { drop(lock); thread::sleep(Duration::from_millis(10)); continue; }
                 }
             };
 
-            if is_parallel {
-                p.start_task(&work.name);
-            }
-            let final_cmd = work.task.resolve_cmd(&work.extra_args);
+            let task_cfg = cfg.tasks.get(&task_name).unwrap();
+            let final_cmd = task_cfg.resolve_cmd(&f_args);
+
+            // PILLAR 3: Start UI Track
+            if is_parallel { p.start_task(&task_name); }
 
             let res: Result<(ExecutionResult, bool)> = (|| {
-                let cache_path = format!(".zetten/cache/{}.hash", work.name);
-                let mut was_cached = false;
-
-                if !work.task.inputs.is_empty() && work.extra_args.is_empty() {
-                    let hash = compute_hash(&work.task.inputs)?;
-                    if let Ok(prev) = fs::read_to_string(&cache_path) {
-                        if prev == hash {
-                            was_cached = true;
-                            return Ok((
-                                ExecutionResult {
-                                    is_success: true,
-                                    ..Default::default()
-                                },
-                                was_cached,
-                            ));
-                        }
+                let cache_path = format!(".zetten/cache/{}.hash", task_name);
+                if !task_cfg.inputs.is_empty() && f_args.is_empty() {
+                    let hash = compute_hash(&task_cfg.inputs)?;
+                    if fs::read_to_string(&cache_path).map(|s| s == hash).unwrap_or(false) {
+                        return Ok((ExecutionResult { is_success: true, ..Default::default() }, true));
                     }
-                    let exec = run_command(&final_cmd, &work.task.allow_exit_codes, is_parallel)?;
+                    // PILLAR 2: Run with Registry & Output Protection
+                    let exec = execute_task_command(&final_cmd, &task_cfg.allow_exit_codes, is_parallel)?;
                     if exec.is_success {
                         let _ = fs::create_dir_all(".zetten/cache");
                         let _ = fs::write(cache_path, hash);
                     }
-                    Ok((exec, was_cached))
+                    Ok((exec, false))
                 } else {
-                    let exec = run_command(&final_cmd, &work.task.allow_exit_codes, is_parallel)?;
+                    let exec = execute_task_command(&final_cmd, &task_cfg.allow_exit_codes, is_parallel)?;
                     Ok((exec, false))
                 }
             })();
 
-            if is_parallel {
-                p.finish_task();
-            }
-            let _ = t_tx.send(res.map(|(e, cached)| (work.name, e, cached)));
+            // PILLAR 3: Finish UI Track
+            if is_parallel { p.finish_task(); }
+            let _ = t_tx.send(res.map(|(e, c)| (task_name, e, c)));
         });
     }
 
     let mut in_flight = 0;
-    let push_work = |q: &Arc<Mutex<VecDeque<WorkItem>>>,
-                     name: String,
-                     config: &Config,
-                     extra_args: Vec<String>| {
-        let task = config.tasks.get(&name).unwrap().clone();
-        q.lock().unwrap().push_back(WorkItem {
-            name,
-            task,
-            extra_args,
-        });
-    };
-
-    // Kick off initial ready tasks
-    for t in ready_tasks {
-        push_work(&work_queue, t, &config, args.clone());
+    for t in ready {
+        work_queue.lock().unwrap().push_back(t);
         in_flight += 1;
     }
 
-    // 6. Failure Propagation and Orchestration
     let mut exit_code = 0;
     while in_flight > 0 {
-        let (finished, exec, was_cached) = rx.recv()??;
+        let (finished, exec, cached) = rx.recv()??;
         in_flight -= 1;
+        summary.task_metrics.insert(finished.clone(), exec.duration);
+        let task_cfg = config.tasks.get(&finished).unwrap();
 
-        if exec.is_success {
-            if was_cached {
-                summary.cached += 1;
+        // PILLAR 3: Suspend bar for clean logging
+        let mut log_action = || {
+            if exec.is_success || task_cfg.ignore_errors {
+                if !exec.is_success {
+                    summary.warned += 1;
+                    crate::log::warn(&format!("Task '{}' failed (ignored).", finished));
+                } else if cached {
+                    summary.cached += 1;
+                    crate::log::task_ok(&finished, true);
+                } else {
+                    summary.succeeded += 1;
+                    crate::log::task_ok(&finished, false);
+                }
             } else {
-                summary.succeeded += 1;
-            }
+                summary.failed += 1;
+                exit_code = exec.exit_code;
+                crate::log::task_fail(&finished, exec.exit_code);
+                
+                // Show captured output on failure (Pillar 3 clarity)
+                if is_parallel {
+                    if !exec.stdout.is_empty() { println!("{}", String::from_utf8_lossy(&exec.stdout)); }
+                    if !exec.stderr.is_empty() { eprintln!("{}", String::from_utf8_lossy(&exec.stderr)); }
+                }
 
-            if is_parallel {
-                progress
-                    .pb
-                    .suspend(|| crate::log::task_ok(&finished, was_cached));
-            } else {
-                crate::log::task_ok(&finished, was_cached);
+                if let Some(h) = task_cfg.hint.as_ref() { crate::log::suggestion(&finished, h); }
             }
+        };
 
-            // Unlock dependents
-            if let Some(children) = graph_map.get(&finished) {
-                for child in children {
-                    let deg = indegree.get_mut(child).unwrap();
-                    *deg -= 1;
-                    if *deg == 0 {
-                        push_work(&work_queue, child.clone(), &config, vec![]);
-                        in_flight += 1;
-                    }
+        if is_parallel { progress.pb.suspend(log_action); } else { log_action(); }
+
+        // Break logic if failed
+        if !exec.is_success && !task_cfg.ignore_errors { break; }
+
+        // Unlock dependents
+        if let Some(children) = graph_map.get(&finished) {
+            for child in children {
+                let deg = indegree.get_mut(child).unwrap();
+                *deg -= 1;
+                if *deg == 0 {
+                    work_queue.lock().unwrap().push_back(child.clone());
+                    in_flight += 1;
                 }
             }
-        } else {
-            // FAILURE PROPAGATION: Stop launching new tasks
-
-            summary.failed += 1;
-            exit_code = exec.exit_code;
-
-
-            if is_parallel {
-                // In parallel mode, we dump the captured output ONLY on failure
-                // so the user knows WHY it failed.
-                if !exec.stdout.is_empty() {
-                    println!("{}", String::from_utf8_lossy(&exec.stdout));
-                }
-                if !exec.stderr.is_empty() {
-                    eprintln!("{}", String::from_utf8_lossy(&exec.stderr));
-                }
-            }
-
-            crate::log::task_fail(&finished, exec.exit_code);
-            if let Some(task_cfg) = config.tasks.get(&finished) {
-                if let Some(h) = &task_cfg.hint {
-                    crate::log::suggestion(&finished, h);
-                }
-            }
-            break;
         }
     }
 
-    if is_parallel {
-        progress.pb.finish_and_clear();
-    }
-    print_summary(&summary);
-    if exit_code != 0 {
-        std::process::exit(exit_code);
-    }
+    if is_parallel { progress.pb.finish_and_clear(); }
+    print_summary(&summary, &config, &task_names);
+    if exit_code != 0 { std::process::exit(exit_code); }
     Ok(())
 }
-
-// --- Support Structures & Functions ---
 
 struct RunSummary {
     succeeded: usize,
     cached: usize,
     failed: usize,
+    warned: usize,
+    start_time: Instant,
+    task_metrics: HashMap<String, Duration>,
 }
 impl RunSummary {
     fn new() -> Self {
@@ -420,82 +387,156 @@ impl RunSummary {
             succeeded: 0,
             cached: 0,
             failed: 0,
+            warned: 0,
+            start_time: Instant::now(),
+            task_metrics: HashMap::new(),
         }
     }
 }
 
-struct WorkItem {
-    name: String,
-    task: TaskConfig,
-    extra_args: Vec<String>,
+fn find_critical_path(
+    config: &Config,
+    metrics: &HashMap<String, Duration>,
+    task_names: &[String],
+) -> (Vec<String>, Duration) {
+    let mut cache: HashMap<String, (Vec<String>, Duration)> = HashMap::new();
+
+    fn compute_path(
+        node: &str,
+        config: &Config,
+        metrics: &HashMap<String, Duration>,
+        cache: &mut HashMap<String, (Vec<String>, Duration)>,
+    ) -> (Vec<String>, Duration) {
+        if let Some(res) = cache.get(node) {
+            return res.clone();
+        }
+
+        let current_dur = *metrics.get(node).unwrap_or(&Duration::ZERO);
+        let mut best_path = vec![node.to_string()];
+        let mut max_dep_dur = Duration::ZERO;
+
+        if let Some(task_cfg) = config.tasks.get(node) {
+            for dep in &task_cfg.depends_on {
+                let (path, dur) = compute_path(dep, config, metrics, cache);
+                if dur > max_dep_dur {
+                    max_dep_dur = dur;
+                    let mut new_path = path;
+                    new_path.push(node.to_string());
+                    best_path = new_path;
+                }
+            }
+        }
+
+        let res = (best_path, current_dur + max_dep_dur);
+        cache.insert(node.to_string(), res.clone());
+        res
+    }
+
+    let mut longest_path = Vec::new();
+    let mut max_total = Duration::ZERO;
+
+    for task in task_names {
+        let (path, dur) = compute_path(task, config, metrics, &mut cache);
+        if dur > max_total {
+            max_total = dur;
+            longest_path = path;
+        }
+    }
+
+    (longest_path, max_total)
 }
 
-fn print_summary(s: &RunSummary) {
-    println!("\nSummary:");
+fn print_summary(s: &RunSummary, config: &Config, task_names: &[String]) {
+    let total_wall = s.start_time.elapsed();
+    let total_work: std::time::Duration = s.task_metrics.values().sum();
+    let saved = if total_work > total_wall {
+        total_work - total_wall
+    } else {
+        std::time::Duration::ZERO
+    };
+
+    println!("\n{}", "Summary:".bold());
     println!(
-        "- {} succeeded, {} cached, {} failed",
-        s.succeeded, s.cached, s.failed
+        "  {} succeeded, {} cached, {} warned, {} failed",
+        s.succeeded.to_string().green(),
+        s.cached.to_string().cyan(),
+        s.warned.to_string().yellow(),
+        s.failed.to_string().red()
     );
+
+    println!(
+        "  Total time: {:.2?} ({} saved via parallelism)",
+        total_wall,
+        format!("{:.2?}", saved).yellow().bold()
+    );
+
+    // Only show critical path if tasks actually ran
+    if !s.task_metrics.is_empty() {
+        let (path, _) = find_critical_path(config, &s.task_metrics, task_names);
+        if path.len() > 1 {
+            println!("\n{}", "Critical Path (Bottleneck):".bold().dimmed());
+            println!("  {}", path.join(" ➔ ").magenta());
+            if let Some(bottleneck) = path.last() {
+                println!(
+                    "  Tip: Speeding up {} will reduce total run time.",
+                    bottleneck.yellow()
+                );
+            }
+        }
+    }
 }
 
 fn collect_tasks(config: &Config, roots: &[String]) -> Result<Vec<String>> {
     let mut expanded = HashSet::new();
     let mut stack = roots.to_vec();
-
-    while let Some(task_name) = stack.pop() {
-        if expanded.insert(task_name.clone()) {
-            if let Some(task_cfg) = config.tasks.get(&task_name) {
-                for dep in &task_cfg.depends_on {
-                    stack.push(dep.clone());
+    while let Some(t) = stack.pop() {
+        if expanded.insert(t.clone()) {
+            if let Some(c) = config.tasks.get(&t) {
+                for d in &c.depends_on {
+                    stack.push(d.clone());
                 }
             } else {
-                return Err(anyhow!("USER_ERROR: Task '{}' not found.", task_name));
+                return Err(anyhow!("USER_ERROR: Task '{}' not found.", t));
             }
         }
     }
-
     let mut sorted = Vec::new();
     let mut visited = HashSet::new();
     let mut visiting = HashSet::new();
 
     fn visit(
-        name: &str,
-        config: &Config,
-        sorted: &mut Vec<String>,
-        visited: &mut HashSet<String>,
-        visiting: &mut HashSet<String>,
+        n: &str,
+        cfg: &Config,
+        s: &mut Vec<String>,
+        v: &mut HashSet<String>,
+        vg: &mut HashSet<String>,
     ) -> Result<()> {
-        if visiting.contains(name) {
-            return Err(anyhow!(
-                "USER_ERROR: Circular dependency detected at '{}'",
-                name
-            ));
+        if vg.contains(n) {
+            return Err(anyhow!("USER_ERROR: Circular dependency at '{}'", n));
         }
-        if !visited.contains(name) {
-            visiting.insert(name.to_string());
-            if let Some(task) = config.tasks.get(name) {
-                for dep in &task.depends_on {
-                    visit(dep, config, sorted, visited, visiting)?;
+        if !v.contains(n) {
+            vg.insert(n.to_string());
+            if let Some(t) = cfg.tasks.get(n) {
+                for d in &t.depends_on {
+                    visit(d, cfg, s, v, vg)?;
                 }
             }
-            visiting.remove(name);
-            visited.insert(name.to_string());
-            sorted.push(name.to_string());
+            vg.remove(n);
+            v.insert(n.to_string());
+            s.push(n.to_string());
         }
         Ok(())
     }
-
-    for name in expanded {
-        visit(&name, config, &mut sorted, &mut visited, &mut visiting)?;
+    for n in expanded {
+        visit(&n, config, &mut sorted, &mut visited, &mut visiting)?;
     }
     Ok(sorted)
 }
 
-fn find_closest<'a>(input: &str, options: Vec<&'a str>) -> Option<&'a str> {
-    options
-        .into_iter()
-        .map(|opt| (opt, strsim::levenshtein(input, opt)))
-        .filter(|(_, dist)| *dist <= 2)
-        .min_by_key(|(_, dist)| *dist)
-        .map(|(opt, _)| opt)
+fn find_closest<'a>(i: &str, opts: Vec<&'a str>) -> Option<&'a str> {
+    opts.into_iter()
+        .map(|o| (o, strsim::levenshtein(i, o)))
+        .filter(|(_, d)| *d <= 2)
+        .min_by_key(|(_, d)| *d)
+        .map(|(o, _)| o)
 }
