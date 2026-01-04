@@ -11,12 +11,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # This tells GitHub to download the whole history 
+          # so 'mike' can see previous versions
+          fetch-depth: 0
+
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
-      - run: pip install mkdocs-material mike
+
+      - name: Install dependencies
+        run: pip install mkdocs-material mike
+
       - name: Deploy with Versioning
         run: |
-          git config user.name github-actions
-          git config user.name github-actions@github.com
-          mike deploy --push --update-aliases latest
+          # 1. Identity Setup (Fixed the email line here)
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          
+          # 2. Fetch the gh-pages branch so we don't overwrite it
+          git fetch origin gh-pages --depth=1 || true
+          
+          # 3. Use 'mike' to deploy as 'latest' and 'dev'
+          # This makes your version picker work
+          mike deploy --push --update-aliases latest dev
