@@ -1,0 +1,21 @@
+site_name: Zetten
+site_url: https://docs.zetten.in
+
+theme:
+  name: material
+  palette:
+    # This sets the "Dark Mode" as default
+    - scheme: slate
+      primary: black
+      accent: red
+  features:
+    - navigation.tabs    # The top menu bar
+    - navigation.tracking # Updates the URL as you scroll
+
+# This tells the site what pages to show
+nav:
+  - Home: index.md
+
+extra:
+  version:
+    provider: mike

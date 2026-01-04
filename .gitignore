@@ -3,7 +3,7 @@
 **/*.hash
 /.vscode
 .DS_Store
-/.venv
+/.venv/
 /.python-version
 /__pycache__/
 *.pyc
@@ -28,3 +28,4 @@ coverage/
 *.cover
 .hypothesis/
 .pyre/
+site/
