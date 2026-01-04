@@ -6,15 +6,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
+        <meta name="description" content="A high-performance, deterministic task runner for Python backend projects, built in Rust.">
       
       
-        <link rel="canonical" href="https://docs.zetten.in/latest/features/determinism/">
+        <meta name="author" content="Amit Deb">
       
       
-        <link rel="prev" href="../../quickstart/">
+        <link rel="canonical" href="https://docs.zetten.in/reference/commands/">
       
       
-        <link rel="next" href="../caching/">
+        <link rel="prev" href="../../guides/variables/">
+      
       
       
         
@@ -25,7 +27,7 @@
     
     
       
-        <title>Determinism - Zetten</title>
+        <title>CLI Commands - Zetten</title>
       
     
     
@@ -76,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#determinism" class="md-skip">
+        <a href="#cli-commands" class="md-skip">
           Skip to content
         </a>
       
@@ -109,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Determinism
+              CLI Commands
             
           </span>
         </div>
@@ -275,13 +277,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../features/determinism/" class="md-tabs__link">
           
   
   
@@ -321,11 +321,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../reference/commands/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
           
   
   
@@ -468,10 +470,8 @@
       
   
   
-    
   
   
-  
     
     
       
@@ -485,22 +485,19 @@
     
     
       
-        
-        
-      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
             
   
   
@@ -518,7 +515,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -533,37 +530,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Determinism
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../features/determinism/" class="md-nav__link">
         
   
   
@@ -579,48 +549,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#stability-across-environments" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Stability Across Environments
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#no-implicit-behavior" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        No Implicit Behavior
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -633,7 +561,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../caching/" class="md-nav__link">
+      <a href="../../features/caching/" class="md-nav__link">
         
   
   
@@ -661,7 +589,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../execution/" class="md-nav__link">
+      <a href="../../features/execution/" class="md-nav__link">
         
   
   
@@ -844,8 +772,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -855,19 +785,22 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
             
   
   
@@ -885,7 +818,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             
@@ -900,10 +833,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../reference/commands/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Commands
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -919,6 +879,92 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#init" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        init
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#watch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        watch
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#graph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        graph
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#doctor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        doctor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        completions
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -958,10 +1004,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#stability-across-environments" class="md-nav__link">
+  <a href="#init" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Stability Across Environments
+        init
       
     </span>
   </a>
@@ -969,10 +1015,54 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#no-implicit-behavior" class="md-nav__link">
+  <a href="#run" class="md-nav__link">
     <span class="md-ellipsis">
       
-        No Implicit Behavior
+        run
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#watch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        watch
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#graph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        graph
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#doctor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        doctor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        completions
       
     </span>
   </a>
@@ -999,17 +1089,31 @@
   
 
 
-<h1 id="determinism">Determinism</h1>
-<p>Zetten is deterministic by design. We believe that a task runner should never "guess" what you want it to do.</p>
-<h2 id="stability-across-environments">Stability Across Environments</h2>
-<p>The same configuration behaves exactly the same way:
-- * Locally on your machine.
-- * Inside a Docker container.
-- * Across different CI providers (GitHub Actions, GitLab, Jenkins).</p>
-<h2 id="no-implicit-behavior">No Implicit Behavior</h2>
-<p>There is no environment-based guessing. Zetten only knows what you tell it in the configuration files.
-- * The same inputs produce the <strong>same task hash</strong>.
-- * The same task graph executes in the <strong>same order</strong>.</p>
+<h1 id="cli-commands">CLI Commands</h1>
+<h3 id="init"><code>init</code></h3>
+<p>Interactive project setup and template generation.</p>
+<pre><code class="language-bash">zetten init
+</code></pre>
+<h3 id="run"><code>run</code></h3>
+<p>Execute tasks.</p>
+<pre><code class="language-bash">zetten run &lt;task_name&gt;
+</code></pre>
+<h3 id="watch"><code>watch</code></h3>
+<p>Re-run tasks when inputs change.</p>
+<pre><code class="language-bash">zetten watch &lt;task_name&gt;
+</code></pre>
+<h3 id="graph"><code>graph</code></h3>
+<p>Inspect the task dependency graph.</p>
+<pre><code class="language-bash">zetten graph
+</code></pre>
+<h3 id="doctor"><code>doctor</code></h3>
+<p>Diagnose configuration and environment issues.</p>
+<pre><code class="language-bash">zetten doctor
+</code></pre>
+<h3 id="completions"><code>completions</code></h3>
+<p>Generate shell completion scripts</p>
+<pre><code class="language-bash">zetten completion &lt;SHELL&gt;
+</code></pre>
 
 
 
@@ -1039,7 +1143,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../../quickstart/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Quick Start">
+          <a href="../../guides/variables/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Variables Usages">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1049,27 +1153,11 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Quick Start
+                Variables Usages
               </div>
             </div>
           </a>
         
-        
-          
-          <a href="../caching/" class="md-footer__link md-footer__link--next" aria-label="Next: Caching">
-            <div class="md-footer__title">
-              <span class="md-footer__direction">
-                Next
-              </span>
-              <div class="md-ellipsis">
-                Caching
-              </div>
-            </div>
-            <div class="md-footer__button md-icon">
-              
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
-            </div>
-          </a>
         
       </nav>
     

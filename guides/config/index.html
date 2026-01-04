@@ -6,15 +6,19 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
+        <meta name="description" content="A high-performance, deterministic task runner for Python backend projects, built in Rust.">
       
       
-        <link rel="canonical" href="https://docs.zetten.in/latest/guides/variables/">
+        <meta name="author" content="Amit Deb">
       
       
-        <link rel="prev" href="../config/">
+        <link rel="canonical" href="https://docs.zetten.in/guides/config/">
       
       
-        <link rel="next" href="../../reference/commands/">
+        <link rel="prev" href="../ci/">
+      
+      
+        <link rel="next" href="../variables/">
       
       
         
@@ -25,7 +29,7 @@
     
     
       
-        <title>Variables Usages - Zetten</title>
+        <title>Configuration - Zetten</title>
       
     
     
@@ -76,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#variable-hints-interpolation" class="md-skip">
+        <a href="#configuration" class="md-skip">
           Skip to content
         </a>
       
@@ -109,7 +113,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Variables Usages
+              Configuration
             
           </span>
         </div>
@@ -712,34 +716,6 @@
                 
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../config/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Configuration
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
     
   
   
@@ -759,7 +735,7 @@
   <span class="md-ellipsis">
     
   
-    Variables Usages
+    Configuration
   
 
     
@@ -777,7 +753,7 @@
   <span class="md-ellipsis">
     
   
-    Variables Usages
+    Configuration
   
 
     
@@ -803,33 +779,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#syntax" class="md-nav__link">
+  <a href="#supported-files" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Syntax
+        Supported Files
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#the-hierarchy-resolution-order" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The Hierarchy (Resolution Order)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="The Hierarchy (Resolution Order)">
+    <nav class="md-nav" aria-label="Supported Files">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#tier-1-cli-overrides-highest" class="md-nav__link">
+  <a href="#pyprojecttoml-preferred" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tier 1: CLI Overrides (Highest):
+        pyproject.toml (Preferred)
       
     </span>
   </a>
@@ -837,55 +802,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#tier-2-config-file" class="md-nav__link">
+  <a href="#zettentoml-option" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tier 2: Config File
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#tier-3-environment-variables-lowest" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tier 3: Environment Variables (Lowest)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#global-variables-vars" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Global Variables (vars)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Global Variables (vars)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#example-pyprojecttoml" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Example: pyproject.toml
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#example-zettentoml" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Example: zetten.toml
+        zetten.toml (Option)
       
     </span>
   </a>
@@ -894,6 +814,40 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resolution-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resolution Rules
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Resolution Rules">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-defining-a-task" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: Defining a Task
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pro-tip-debugging-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pro-Tip: Debugging Variables
+      
+    </span>
+  </a>
   
 </li>
         
@@ -906,6 +860,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../variables/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Variables Usages
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1036,33 +1018,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#syntax" class="md-nav__link">
+  <a href="#supported-files" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Syntax
+        Supported Files
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#the-hierarchy-resolution-order" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The Hierarchy (Resolution Order)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="The Hierarchy (Resolution Order)">
+    <nav class="md-nav" aria-label="Supported Files">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#tier-1-cli-overrides-highest" class="md-nav__link">
+  <a href="#pyprojecttoml-preferred" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tier 1: CLI Overrides (Highest):
+        pyproject.toml (Preferred)
       
     </span>
   </a>
@@ -1070,55 +1041,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#tier-2-config-file" class="md-nav__link">
+  <a href="#zettentoml-option" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tier 2: Config File
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#tier-3-environment-variables-lowest" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tier 3: Environment Variables (Lowest)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#global-variables-vars" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Global Variables (vars)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Global Variables (vars)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#example-pyprojecttoml" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Example: pyproject.toml
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#example-zettentoml" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Example: zetten.toml
+        zetten.toml (Option)
       
     </span>
   </a>
@@ -1127,6 +1053,40 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resolution-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resolution Rules
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Resolution Rules">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-defining-a-task" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: Defining a Task
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pro-tip-debugging-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pro-Tip: Debugging Variables
+      
+    </span>
+  </a>
   
 </li>
         
@@ -1155,58 +1115,52 @@
   
 
 
-<h1 id="variable-hints-interpolation">Variable Hints &amp; Interpolation</h1>
-<p>Zetten features a powerful, deterministic variable system. It allows you to write one command that adapts to different environments without changing the configuration file.</p>
-<h2 id="syntax">Syntax</h2>
-<p>In your cmd strings, you can reference variables using the standard shell-like syntax:
-- ${VAR}: Resolves to the value of VAR.
-- ${VAR:-default}: Resolves to VAR, or uses default if VAR is not set.</p>
-<p>Example in <code>pyproject.toml</code>:</p>
-<pre><code class="language-toml">[tool.zetten.tasks.build]
-# If DEST is not provided, it defaults to 'dist'
-cmd = &quot;python -m build --outdir ${DEST:-dist}&quot;
-inputs = [&quot;src/&quot;]
+<h1 id="configuration">Configuration</h1>
+<p>Configuration in Zetten is explicit by design. There is no templating and no conditionals.</p>
+<h2 id="supported-files">Supported Files</h2>
+<h3 id="pyprojecttoml-preferred"><code>pyproject.toml</code> (Preferred)</h3>
+<pre><code class="language-toml">[tool.zetten.tasks.test]
+cmd = &quot;pytest&quot;
+inputs = [&quot;src/&quot;, &quot;tests/&quot;]
+</code></pre>
+<h3 id="zettentoml-option"><code>zetten.toml</code> (Option)</h3>
+<pre><code class="language-toml">[tasks.test]
+cmd = &quot;pytest&quot;
+inputs = [&quot;src/&quot;, &quot;tests/&quot;]
 </code></pre>
 <hr />
-<h2 id="the-hierarchy-resolution-order">The Hierarchy (Resolution Order)</h2>
-<p>Zetten resolves variables using a "Strict Tier" system. If a variable is defined in multiple places, the higher tier always wins.</p>
-<h4 id="tier-1-cli-overrides-highest">Tier 1: CLI Overrides (Highest):</h4>
-<p>Values passed directly via the -k (or --key) flag. This is used for "one-off" changes.</p>
-<pre><code class="language-bash">zetten run build -k DEST=build_output
+<h2 id="resolution-rules">Resolution Rules</h2>
+<p>Zetten follows a strict logic to find your settings. If the configuration is missing or ambiguous, Zetten will fail with an explanation rather than trying to guess.</p>
+<ul>
+<li>Check pyproject.toml: If it exists and contains a [tool.zetten] header, Zetten uses it.</li>
+<li>Check zetten.toml: If pyproject.toml doesn't have Zetten settings, it looks for this file.</li>
+<li>Initialization: If neither is found, the project is considered uninitialized.</li>
+</ul>
+<p><strong>To fix a missing configuration, run:</strong></p>
+<pre><code class="language-bash">zetten init
 </code></pre>
-<h4 id="tier-2-config-file">Tier 2: Config File</h4>
-<p>Values defined globally in your configuration file under the vars table.</p>
-<pre><code class="language-toml">[tool.zetten.vars]
-DEST = &quot;local_cache&quot;
-</code></pre>
-<h4 id="tier-3-environment-variables-lowest">Tier 3: Environment Variables (Lowest)</h4>
-<p>Standard system environment variables (e.g., $USER, $PATH, or variables exported in your shell).</p>
-<pre><code class="language-bash">export DEST=system_dist
-zetten run build
+<h3 id="example-defining-a-task">Example: Defining a Task</h3>
+<p>A task consists of three main parts:
+- <code>cmd</code>: The actual shell command to run (e.g., pytest or ruff).
+- <code>inputs</code>: A list of files or directories Zetten should "watch." If these don't change, Zetten skips the run.
+- <code>depends_on</code> (Optional): Other tasks that must finish before this one starts.
+- <code>tags</code> (Optional): Optional labels to group tasks (e.g., <code>["ci"]</code>).
+- <code>description</code> (Optional): Optional field to describe a task
+- <code>hints</code> (Options): A field to help developer set some hints when the user encouters any issues.</p>
+<p>Full Example in pyproject.toml:</p>
+<pre><code class="language-toml">[tool.zetten.tasks.lint]
+cmd = &quot;ruff check src&quot;
+inputs = [&quot;src/&quot;]
+
+[tool.zetten.tasks.test]
+cmd = &quot;pytest&quot;
+inputs = [&quot;src/&quot;, &quot;tests/&quot;]
+depends_on = [&quot;lint&quot;]
 </code></pre>
 <hr />
-<h3 id="global-variables-vars">Global Variables (vars)</h3>
-<p>Zetten allows you to define a global vars table. These variables act as "Defaults"—they will be injected into any task's cmd that references them, unless you override them via the CLI.</p>
-<h4 id="example-pyprojecttoml">Example: <code>pyproject.toml</code></h4>
-<p>Place your global variables under the <code>[tool.zetten.vars]</code> section.</p>
-<pre><code class="language-toml">[tool.zetten.vars]
-BUILD_DIR = &quot;dist&quot;
-PYTHON_BIN = &quot;python3&quot;
-LOG_LEVEL = &quot;info&quot;
-
-[tool.zetten.tasks.build]
-# Uses the global BUILD_DIR and PYTHON_BIN defined above
-cmd = &quot;${PYTHON_BIN} -m build --outdir ${BUILD_DIR}&quot;
-inputs = [&quot;src/&quot;]
-</code></pre>
-<h4 id="example-zettentoml">Example: <code>zetten.toml</code></h4>
-<p>If using a standalone file, use the [vars] header.</p>
-<pre><code class="language-toml">[vars]
-BUILD_DIR = &quot;dist&quot;
-
-[tasks.build]
-cmd = &quot;mkdir -p ${BUILD_DIR} &amp;&amp; tar -cvf ${BUILD_DIR}/pkg.tar src/&quot;
-inputs = [&quot;src/&quot;]
+<h3 id="pro-tip-debugging-variables">Pro-Tip: Debugging Variables</h3>
+<p>If you aren't sure what value a variable is taking, use the Doctor command:</p>
+<pre><code class="language-bash">zetten doctor
 </code></pre>
 
 
@@ -1237,7 +1191,7 @@ inputs = [&quot;src/&quot;]
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../config/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Configuration">
+          <a href="../ci/" class="md-footer__link md-footer__link--prev" aria-label="Previous: CI Usage">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1247,20 +1201,20 @@ inputs = [&quot;src/&quot;]
                 Previous
               </span>
               <div class="md-ellipsis">
-                Configuration
+                CI Usage
               </div>
             </div>
           </a>
         
         
           
-          <a href="../../reference/commands/" class="md-footer__link md-footer__link--next" aria-label="Next: CLI Commands">
+          <a href="../variables/" class="md-footer__link md-footer__link--next" aria-label="Next: Variables Usages">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                CLI Commands
+                Variables Usages
               </div>
             </div>
             <div class="md-footer__button md-icon">

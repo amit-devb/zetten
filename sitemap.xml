@@ -1,43 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://docs.zetten.in/latest/</loc>
+         <loc>https://docs.zetten.in/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://docs.zetten.in/latest/installation/</loc>
+         <loc>https://docs.zetten.in/installation/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://docs.zetten.in/latest/quickstart/</loc>
+         <loc>https://docs.zetten.in/quickstart/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://docs.zetten.in/latest/features/caching/</loc>
+         <loc>https://docs.zetten.in/features/caching/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://docs.zetten.in/latest/features/determinism/</loc>
+         <loc>https://docs.zetten.in/features/determinism/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://docs.zetten.in/latest/features/execution/</loc>
+         <loc>https://docs.zetten.in/features/execution/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://docs.zetten.in/latest/guides/ci/</loc>
+         <loc>https://docs.zetten.in/guides/ci/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://docs.zetten.in/latest/guides/config/</loc>
+         <loc>https://docs.zetten.in/guides/config/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://docs.zetten.in/latest/guides/variables/</loc>
+         <loc>https://docs.zetten.in/guides/variables/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
     <url>
-         <loc>https://docs.zetten.in/latest/reference/commands/</loc>
+         <loc>https://docs.zetten.in/reference/commands/</loc>
          <lastmod>2026-01-04</lastmod>
     </url>
 </urlset>
