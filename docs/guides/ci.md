@@ -24,7 +24,9 @@ If a foundational task fails, Zetten halts downstream execution immediately to s
 
 
 ### Practical Example: CI/CD
+
 In a GitHub Action, you might want to pass the commit SHA into your build task:
+
 - Config: `cmd = "echo Building version ${VERSION:-dev}"`
 - Local Run: `zetten run build → Output: "Building version dev"`
 - CI Run: `zetten run build -k VERSION=${{ github.sha }} → Output: "Building version a1b2c3d...`
