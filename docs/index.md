@@ -19,8 +19,8 @@ Think of Zetten as an **execution engine**, not a framework. Unlike tools that r
 ## What Zetten Is Not
 
 To understand Zetten, it is helpful to know what it is **not**:
-- * It is **not** a framework or a workflow engine.
-- * It is **not** a plugin system or a background service.
-- * It is **not** a runtime dependency of your application.
+- It is **not** a framework or a workflow engine.
+- It is **not** a plugin system or a background service.
+- It is **not** a runtime dependency of your application.
 
 It is a small, fast, and predictable execution tool.

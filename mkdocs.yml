@@ -2,6 +2,8 @@ site_name: Zetten
 site_url: https://docs.zetten.in
 repo_url: https://github.com/amit-devb/zetten
 edit_uri: edit/main/docs/
+site_description: A high-performance, deterministic task runner for Python backend projects, built in Rust.
+site_author: Amit Deb
 
 theme:
   name: material
