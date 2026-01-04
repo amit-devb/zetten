@@ -1,6 +1,6 @@
 [project]
 name = "zetten"
-version = "1.0.8"
+version = "1.0.9"
 description = "Fast task runner for Python projects"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -15,8 +15,8 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/amit-devb/zetten"
-Documentation = "https://github.com/amit-devb/zetten/wiki"
+Homepage = "https://docs.zetten.in"
+Documentation = "https://docs.zetten.in"
 Repository = "https://github.com/amit-devb/zetten"
 
 [project.scripts]

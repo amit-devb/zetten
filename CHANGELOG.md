@@ -3,6 +3,11 @@
 All notable changes to the Zetten task runner will be documented in this file.
 
 ---
+## [1.0.9] – 2026-01-04
+### Fixed
+- Fixed Windows installation failure caused by GitHub `latest` release redirects
+- Installer now downloads version-pinned GitHub release assets
+- Improved checksum validation robustness across all platforms
 
 ## [1.0.8] - 2026-01-04
 ### 🚀 Features

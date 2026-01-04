@@ -1,14 +1,14 @@
 [package]
 name = "zetten"
-version = "1.0.8"
+version = "1.0.9"
 edition = "2021"
 authors = ["Amit Deb <deb.amit2013@gmail.com>"]
 description = "Fast, Python-aware task runner with deterministic caching and DAG-based scheduling"
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/amit-devb/zetten"
-homepage = "https://github.com/amit-devb/zetten"
-documentation = "https://github.com/amit-devb/zetten/wiki"
+homepage = "https://docs.zetten.in"
+documentation = "https://docs.zetten.in"
 keywords = ["task-runner", "python", "build", "cli", "fastapi"]
 categories = ["command-line-utilities", "development-tools"]
 
