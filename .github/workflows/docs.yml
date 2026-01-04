@@ -35,3 +35,5 @@ jobs:
           # 3. Use 'mike' to deploy as 'latest' and 'dev'
           # This makes your version picker work
           mike deploy --push --update-aliases latest dev
+
+          mike set-default --push latest
