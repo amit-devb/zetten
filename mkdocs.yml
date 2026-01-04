@@ -4,6 +4,8 @@ repo_url: https://github.com/yourusername/zetten
 
 theme:
   name: material
+  logo: assets/logo.png    # The icon at the top left of the page
+  favicon: assets/logo.png # The icon in the browser tab
   palette:
     # Light mode
     - scheme: default
