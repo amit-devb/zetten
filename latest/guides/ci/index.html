@@ -1058,10 +1058,12 @@ inputs = [&quot;src/&quot;]
 </code></pre>
 <p>If a foundational task fails, Zetten halts downstream execution immediately to save CI minutes and prevent cascading failures.</p>
 <h3 id="practical-example-cicd">Practical Example: CI/CD</h3>
-<p>In a GitHub Action, you might want to pass the commit SHA into your build task:
-- Config: <code>cmd = "echo Building version ${VERSION:-dev}"</code>
-- Local Run: <code>zetten run build → Output: "Building version dev"</code>
-- CI Run: <code>zetten run build -k VERSION=${{ github.sha }} → Output: "Building version a1b2c3d...</code></p>
+<p>In a GitHub Action, you might want to pass the commit SHA into your build task:</p>
+<ul>
+<li>Config: <code>cmd = "echo Building version ${VERSION:-dev}"</code></li>
+<li>Local Run: <code>zetten run build → Output: "Building version dev"</code></li>
+<li>CI Run: <code>zetten run build -k VERSION=${{ github.sha }} → Output: "Building version a1b2c3d...</code></li>
+</ul>
 
 
 

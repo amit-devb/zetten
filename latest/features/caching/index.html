@@ -1003,9 +1003,9 @@
 <p>Zetten uses content-addressable hashing to ensure you never run the same code twice.</p>
 <h2 id="how-hashes-are-calculated">How Hashes are Calculated</h2>
 <p>Task results are cached based on:
-1. <strong>The Command:</strong> Any change to the <code>cmd</code> string invalidates the cache.
-2. <strong>Input Files:</strong> A byte-by-byte check of all declared files and directories.
-3. <strong>Dependencies:</strong> If a parent task changes, all dependent tasks are re-evaluated.</p>
+- <strong>The Command:</strong> Any change to the <code>cmd</code> string invalidates the cache.
+- <strong>Input Files:</strong> A byte-by-byte check of all declared files and directories.
+- <strong>Dependencies:</strong> If a parent task changes, all dependent tasks are re-evaluated.</p>
 <h2 id="explicit-reporting">Explicit Reporting</h2>
 <p>Zetten never hides what it's doing. Cached tasks are always reported explicitly in the terminal output so you know exactly which results are fresh and which are reused.</p>
 
