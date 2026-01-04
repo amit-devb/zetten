@@ -14,7 +14,7 @@ Think of Zetten as an **execution engine**, not a framework. Unlike tools that r
 * **Results are cached:** If inputs haven't changed, the task is skipped.
 * **Output is CI-safe:** Logs and exit codes are designed for automation.
 
-[Get Started](quickstart.md){ .md-button .md-button--primary }
+[Get Started](quickstart.md)
 
 ## What Zetten Is Not
 

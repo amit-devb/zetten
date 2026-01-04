@@ -1,6 +1,7 @@
 site_name: Zetten
 site_url: https://docs.zetten.in
-repo_url: https://github.com/yourusername/zetten
+repo_url: https://github.com/amit-devb/zetten
+edit_uri: edit/main/docs/
 
 theme:
   name: material
@@ -21,12 +22,18 @@ theme:
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
+  font:
+    text: Roboto
+    code: Roboto Mono
+    
   features:
     - navigation.tabs
     - navigation.sections
     - navigation.indexes
     - content.code.copy
     - content.code.annotate
+    - navigation.footer
+    - navigation.tracking
 
 nav:
   - Introduction: index.md
@@ -42,3 +49,14 @@ nav:
     - Variables Usages: guides/variables.md
   - Reference:
     - CLI Commands: reference/commands.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/amit-devb/zetten
+
+copyright: |
+  Copyright &copy; 2026 <b>Zetten/b>. 
+  Maintained by <a href="https://github.com/amit-devb"><b>@amit-devb</b></a>.
+  <br>
+  Built with ❤️ for the <b>Python</b> community using the speed of <b>Rust</b>.
