@@ -8,29 +8,31 @@
       
       
       
-        <link rel="canonical" href="https://docs.zetten.in/latest/">
+        <link rel="canonical" href="https://docs.zetten.in/latest/guides/config/">
       
       
+        <link rel="prev" href="../ci/">
       
-        <link rel="next" href="installation/">
+      
+        <link rel="next" href="../variables/">
       
       
         
       
       
-      <link rel="icon" href="assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
     
     
       
-        <title>Zetten</title>
+        <title>Configuration - Zetten</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -49,7 +51,7 @@
       
     
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -74,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#introduction" class="md-skip">
+        <a href="#configuration" class="md-skip">
           Skip to content
         </a>
       
@@ -88,7 +90,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="Zetten" class="md-header__button md-logo" aria-label="Zetten" data-md-component="logo">
+    <a href="../.." title="Zetten" class="md-header__button md-logo" aria-label="Zetten" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -108,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Introduction
+              Configuration
             
           </span>
         </div>
@@ -217,11 +219,9 @@
   
   
   
-    
   
-  
-    <li class="md-tabs__item md-tabs__item--active">
-      <a href="." class="md-tabs__link">
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -240,7 +240,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="installation/" class="md-tabs__link">
+      <a href="../../installation/" class="md-tabs__link">
         
   
   
@@ -259,7 +259,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="quickstart/" class="md-tabs__link">
+      <a href="../../quickstart/" class="md-tabs__link">
         
   
   
@@ -280,7 +280,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="features/determinism/" class="md-tabs__link">
+        <a href="../../features/determinism/" class="md-tabs__link">
           
   
   
@@ -298,11 +298,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="guides/ci/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../ci/" class="md-tabs__link">
           
   
   
@@ -324,7 +326,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="reference/commands/" class="md-tabs__link">
+        <a href="../../reference/commands/" class="md-tabs__link">
           
   
   
@@ -360,7 +362,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="Zetten" class="md-nav__button md-logo" aria-label="Zetten" data-md-component="logo">
+    <a href="../.." title="Zetten" class="md-nav__button md-logo" aria-label="Zetten" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -387,37 +389,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Introduction
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="." class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -433,48 +408,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#the-mental-model" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The Mental Model
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-zetten-is-not" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What Zetten Is Not
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -486,7 +419,7 @@
   
   
     <li class="md-nav__item">
-      <a href="installation/" class="md-nav__link">
+      <a href="../../installation/" class="md-nav__link">
         
   
   
@@ -513,7 +446,7 @@
   
   
     <li class="md-nav__item">
-      <a href="quickstart/" class="md-nav__link">
+      <a href="../../quickstart/" class="md-nav__link">
         
   
   
@@ -600,7 +533,7 @@
   
   
     <li class="md-nav__item">
-      <a href="features/determinism/" class="md-nav__link">
+      <a href="../../features/determinism/" class="md-nav__link">
         
   
   
@@ -628,7 +561,7 @@
   
   
     <li class="md-nav__item">
-      <a href="features/caching/" class="md-nav__link">
+      <a href="../../features/caching/" class="md-nav__link">
         
   
   
@@ -656,7 +589,7 @@
   
   
     <li class="md-nav__item">
-      <a href="features/execution/" class="md-nav__link">
+      <a href="../../features/execution/" class="md-nav__link">
         
   
   
@@ -688,8 +621,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -703,19 +638,22 @@
     
     
       
+        
+        
+      
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
             
   
   
@@ -733,7 +671,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -751,7 +689,7 @@
   
   
     <li class="md-nav__item">
-      <a href="guides/ci/" class="md-nav__link">
+      <a href="../ci/" class="md-nav__link">
         
   
   
@@ -776,10 +714,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="guides/config/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -795,6 +760,104 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#supported-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported Files
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Supported Files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pyprojecttoml-preferred" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pyproject.toml (Preferred)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#zettentoml-option" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        zetten.toml (Option)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resolution-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resolution Rules
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Resolution Rules">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-defining-a-task" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: Defining a Task
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pro-tip-debugging-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pro-Tip: Debugging Variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -807,7 +870,7 @@
   
   
     <li class="md-nav__item">
-      <a href="guides/variables/" class="md-nav__link">
+      <a href="../variables/" class="md-nav__link">
         
   
   
@@ -898,7 +961,7 @@
   
   
     <li class="md-nav__item">
-      <a href="reference/commands/" class="md-nav__link">
+      <a href="../../reference/commands/" class="md-nav__link">
         
   
   
@@ -953,24 +1016,80 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-mental-model" class="md-nav__link">
+  <a href="#supported-files" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The Mental Model
+        Supported Files
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Supported Files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pyprojecttoml-preferred" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pyproject.toml (Preferred)
       
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#what-zetten-is-not" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#zettentoml-option" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What Zetten Is Not
+        zetten.toml (Option)
       
     </span>
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resolution-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resolution Rules
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Resolution Rules">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-defining-a-task" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example: Defining a Task
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pro-tip-debugging-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pro-Tip: Debugging Variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -994,25 +1113,53 @@
   
 
 
-<h1 id="introduction">Introduction</h1>
-<p><strong>Zetten</strong> is a high-performance, deterministic task runner for Python backend projects. Built in Rust, it acts as a focused execution engine designed to unify how you run tests, linters, and builds.</p>
-<p>Zetten ensures that your workflow remains identical across local development environments and any CI platform—only faster.</p>
-<h2 id="the-mental-model">The Mental Model</h2>
-<p>Think of Zetten as an <strong>execution engine</strong>, not a framework. Unlike tools that rely on implicit behavior, Zetten requires explicit declarations:</p>
+<h1 id="configuration">Configuration</h1>
+<p>Configuration in Zetten is explicit by design. There is no templating and no conditionals.</p>
+<h2 id="supported-files">Supported Files</h2>
+<h3 id="pyprojecttoml-preferred"><code>pyproject.toml</code> (Preferred)</h3>
+<pre><code class="language-toml">[tool.zetten.tasks.test]
+cmd = &quot;pytest&quot;
+inputs = [&quot;src/&quot;, &quot;tests/&quot;]
+</code></pre>
+<h3 id="zettentoml-option"><code>zetten.toml</code> (Option)</h3>
+<pre><code class="language-toml">[tasks.test]
+cmd = &quot;pytest&quot;
+inputs = [&quot;src/&quot;, &quot;tests/&quot;]
+</code></pre>
+<hr />
+<h2 id="resolution-rules">Resolution Rules</h2>
+<p>Zetten follows a strict logic to find your settings. If the configuration is missing or ambiguous, Zetten will fail with an explanation rather than trying to guess.</p>
 <ul>
-<li><strong>Tasks are explicit:</strong> You define exactly what to run.</li>
-<li><strong>Inputs are declared:</strong> You tell Zetten which files matter.</li>
-<li><strong>Execution is deterministic:</strong> The same configuration behaves the same everywhere.</li>
-<li><strong>Results are cached:</strong> If inputs haven't changed, the task is skipped.</li>
-<li><strong>Output is CI-safe:</strong> Logs and exit codes are designed for automation.</li>
+<li>Check pyproject.toml: If it exists and contains a [tool.zetten] header, Zetten uses it.</li>
+<li>Check zetten.toml: If pyproject.toml doesn't have Zetten settings, it looks for this file.</li>
+<li>Initialization: If neither is found, the project is considered uninitialized.</li>
 </ul>
-<p><a href="quickstart/">Get Started</a>{ .md-button .md-button--primary }</p>
-<h2 id="what-zetten-is-not">What Zetten Is Not</h2>
-<p>To understand Zetten, it is helpful to know what it is <strong>not</strong>:
-* It is <strong>not</strong> a framework or a workflow engine.
-* It is <strong>not</strong> a plugin system or a background service.
-* It is <strong>not</strong> a runtime dependency of your application.</p>
-<p>It is a small, fast, and predictable execution tool.</p>
+<p><strong>To fix a missing configuration, run:</strong></p>
+<pre><code class="language-bash">zetten init
+</code></pre>
+<h3 id="example-defining-a-task">Example: Defining a Task</h3>
+<p>A task consists of three main parts:
+- <code>cmd</code>: The actual shell command to run (e.g., pytest or ruff).
+- <code>inputs</code>: A list of files or directories Zetten should "watch." If these don't change, Zetten skips the run.
+- <code>depends_on</code> (Optional): Other tasks that must finish before this one starts.
+- <code>tags</code> (Optional): Optional labels to group tasks (e.g., <code>["ci"]</code>).
+- <code>description</code> (Optional): Optional field to describe a task
+- <code>hints</code> (Options): A field to help developer set some hints when the user encouters any issues.</p>
+<p>Full Example in pyproject.toml:</p>
+<pre><code class="language-toml">[tool.zetten.tasks.lint]
+cmd = &quot;ruff check src&quot;
+inputs = [&quot;src/&quot;]
+
+[tool.zetten.tasks.test]
+cmd = &quot;pytest&quot;
+inputs = [&quot;src/&quot;, &quot;tests/&quot;]
+depends_on = [&quot;lint&quot;]
+</code></pre>
+<hr />
+<h3 id="pro-tip-debugging-variables">Pro-Tip: Debugging Variables</h3>
+<p>If you aren't sure what value a variable is taking, use the Doctor command:</p>
+<pre><code class="language-bash">zetten doctor
+</code></pre>
 
 
 
@@ -1062,10 +1209,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.tabs", "navigation.sections", "navigation.indexes", "content.code.copy", "content.code.annotate"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.indexes", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
