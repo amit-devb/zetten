@@ -1,17 +1,26 @@
-# Welcome to MkDocs
+# Introduction
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+**Zetten** is a high-performance, deterministic task runner for Python backend projects. Built in Rust, it acts as a focused execution engine designed to unify how you run tests, linters, and builds.
 
-## Commands
+Zetten ensures that your workflow remains identical across local development environments and any CI platform—only faster.
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
+## The Mental Model
 
-## Project layout
+Think of Zetten as an **execution engine**, not a framework. Unlike tools that rely on implicit behavior, Zetten requires explicit declarations:
 
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+* **Tasks are explicit:** You define exactly what to run.
+* **Inputs are declared:** You tell Zetten which files matter.
+* **Execution is deterministic:** The same configuration behaves the same everywhere.
+* **Results are cached:** If inputs haven't changed, the task is skipped.
+* **Output is CI-safe:** Logs and exit codes are designed for automation.
+
+[Get Started](quickstart.md){ .md-button .md-button--primary }
+
+## What Zetten Is Not
+
+To understand Zetten, it is helpful to know what it is **not**:
+* It is **not** a framework or a workflow engine.
+* It is **not** a plugin system or a background service.
+* It is **not** a runtime dependency of your application.
+
+It is a small, fast, and predictable execution tool.

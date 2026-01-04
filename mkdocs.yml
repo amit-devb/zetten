@@ -1,21 +1,42 @@
 site_name: Zetten
 site_url: https://docs.zetten.in
+repo_url: https://github.com/yourusername/zetten
 
 theme:
   name: material
   palette:
-    # This sets the "Dark Mode" as default
+    # Light mode
+    - scheme: default
+      primary: white
+      accent: red
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
     - scheme: slate
       primary: black
       accent: red
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
   features:
-    - navigation.tabs    # The top menu bar
-    - navigation.tracking # Updates the URL as you scroll
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - content.code.copy
+    - content.code.annotate
 
-# This tells the site what pages to show
 nav:
-  - Home: index.md
-
-extra:
-  version:
-    provider: mike
+  - Introduction: index.md
+  - Installation: installation.md
+  - Quick Start: quickstart.md
+  - Features:
+    - Determinism: features/determinism.md
+    - Caching: features/caching.md
+    - Worker Pool: features/execution.md
+  - Guides:
+    - CI Usage: guides/ci.md
+    - Configuration: guides/config.md
+    - Variables Usages: guides/variables.md
+  - Reference:
+    - CLI Commands: reference/commands.md
