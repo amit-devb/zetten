@@ -25,7 +25,7 @@ theme:
   font:
     text: Roboto
     code: Roboto Mono
-    
+
   features:
     - navigation.tabs
     - navigation.sections
@@ -56,7 +56,7 @@ extra:
       link: https://github.com/amit-devb/zetten
 
 copyright: |
-  Copyright &copy; 2026 <b>Zetten/b>. 
+  Copyright &copy; 2026 <b>Zetten</b>. 
   Maintained by <a href="https://github.com/amit-devb"><b>@amit-devb</b></a>.
   <br>
   Built with ❤️ for the <b>Python</b> community using the speed of <b>Rust</b>.
