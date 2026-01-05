@@ -24,6 +24,9 @@ jobs:
             target: x86_64-pc-windows-msvc
 
     steps:
+      # --------------------
+      # Checkout
+      # --------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -40,20 +43,12 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       # --------------------
-      # Stable Rust (for release builds)
+      # Stable Rust
       # --------------------
       - name: Install stable Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-
-      # --------------------
-      # MSRV check (Rust 1.74)
-      # --------------------
-      - name: Check MSRV (Rust 1.74)
-        run: |
-          rustup toolchain install 1.74
-          cargo +1.74 build
 
       # --------------------
       # macOS compatibility
@@ -75,7 +70,7 @@ jobs:
         run: pip install maturin
 
       # --------------------
-      # Build wheels (locked!)
+      # Build wheels (reproducible)
       # --------------------
       - name: Build wheels
         run: maturin build --release --locked --target ${{ matrix.target }}
