@@ -83,6 +83,8 @@ jobs:
         with:
           name: wheels-${{ matrix.target }}
           path: target/wheels/*.whl
+          overwrite: true
+
 
   publish:
     name: Publish to PyPI
@@ -101,4 +103,4 @@ jobs:
       - name: Publish wheels to PyPI
         env:
           MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-        run: maturin upload wheels/*.whl
+        run: maturin upload wheels/**/*.whl
