@@ -1,6 +1,6 @@
 [package]
 name = "zetten"
-version = "1.0.10"
+version = "1.0.11"
 edition = "2021"
 authors = ["Amit Deb <deb.amit2013@gmail.com>"]
 description = "Fast, Python-aware task runner with deterministic caching and DAG-based scheduling"

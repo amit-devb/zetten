@@ -3,6 +3,30 @@
 All notable changes to the Zetten task runner will be documented in this file.
 
 ---
+
+## [1.0.11] – 2026-01-06
+
+### Fixed
+- Corrected release pipeline sequencing across PyPI, GitHub Releases, and crates.io
+- Fixed `cargo-dist` execution in CI by explicitly installing the `cargo-dist` tool
+- Resolved GitHub Actions artifact conflicts during multi-platform wheel builds
+- Ensured deterministic, single-shot publishing per version across all channels
+
+### Changed
+- Hardened release workflows to enforce immutable versioning
+- Improved CI guards to prevent accidental re-publishing or partial releases
+- Standardized release flow: **tag → PyPI → dist → crates.io**
+
+### Notes
+- This release contains **no functional changes** compared to `1.0.10`
+- It exists to restore **distribution parity** across PyPI, GitHub Releases, and crates.io
+- Users on `1.0.10` do **not** need to upgrade unless they rely on:
+  - crates.io distribution
+  - GitHub release artifacts
+
+
+---
+
 ## [1.0.10] – 2026-01-06
 
 ### Changed
