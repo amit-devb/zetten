@@ -1,0 +1,57 @@
+name: Nightly Build
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install maturin
+        run: pip install maturin tomlkit
+
+      # 🔑 Dynamically compute nightly version
+      - name: Set nightly version
+        run: |
+          python << 'EOF'
+          from datetime import date
+          import tomlkit
+
+          path = "pyproject.toml"
+          data = tomlkit.parse(open(path).read())
+
+          base_version = data["project"]["version"]
+          base_version = base_version.split(".dev")[0]
+
+          today = date.today().strftime("%Y%m%d")
+          nightly_version = f"{base_version}.dev{today}"
+
+          data["project"]["version"] = nightly_version
+
+          with open(path, "w") as f:
+              f.write(tomlkit.dumps(data))
+
+          print(f"Nightly version set to {nightly_version}")
+          EOF
+
+      - name: Build wheels
+        run: maturin build --release
+
+      - name: Publish to TestPyPI
+        env:
+          MATURIN_PYPI_TOKEN: ${{ secrets.TEST_PYPI_TOKEN }}
+        run: |
+          maturin upload \
+            --repository-url https://test.pypi.org/legacy/ \
+            target/wheels/*.whl

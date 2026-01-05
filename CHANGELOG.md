@@ -3,6 +3,44 @@
 All notable changes to the Zetten task runner will be documented in this file.
 
 ---
+## [1.0.10] – 2026-01-06
+
+### Changed
+- Switched Python distribution to **maturin-based native wheels**
+- Rust CLI binary is now bundled directly inside PyPI wheels
+- Installation via `pip` and `pipx` is now fully native and deterministic
+- Release pipeline split into dedicated workflows per distribution channel
+
+### Added
+- Native PyPI wheels for:
+  - Linux
+  - macOS (Intel & Apple Silicon)
+  - Windows
+- `pipx` as a first-class, recommended installation method
+- Binary distribution via `cargo-dist` with GitHub Releases
+- Dedicated crates.io publishing workflow for Rust users
+- CI gating and dry-run protection for crates.io releases
+
+### Removed
+- Removed runtime Python installer that downloaded binaries from GitHub Releases
+- Removed install-time platform detection and checksum verification
+- Removed dependency on GitHub Releases for Python installations
+
+### Fixed
+- Fixed Windows installation failures caused by GitHub release redirects
+- Eliminated checksum mismatch errors during installation
+- Removed all install-time network dependencies for Python users
+
+### Notes
+- This release changes **how Zetten is distributed**, but **does not change CLI behavior**
+- Existing users can upgrade normally via `pip` or `pipx`
+- Recommended installation method going forward:
+  ```bash
+  pipx install zetten
+  ```
+
+---
+
 ## [1.0.9] – 2026-01-04
 ### Fixed
 - Fixed Windows installation failure caused by GitHub `latest` release redirects

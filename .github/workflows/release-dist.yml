@@ -1,0 +1,26 @@
+name: Release Dist
+
+on:
+  workflow_run:
+    workflows: ["Release PyPI"]
+    types:
+      - completed
+
+permissions:
+  contents: write
+
+jobs:
+  dist:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Run cargo-dist
+        run: cargo dist
