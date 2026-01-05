@@ -81,7 +81,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-${{ matrix.target }}
           path: target/wheels/*.whl
 
   publish:
@@ -93,7 +93,6 @@ jobs:
       - name: Download wheels
         uses: actions/download-artifact@v4
         with:
-          name: wheels
           path: wheels
 
       - name: Install maturin
