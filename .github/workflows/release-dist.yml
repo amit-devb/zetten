@@ -30,4 +30,4 @@ jobs:
           key: cargo-dist-${{ runner.os }}
 
       - name: Install cargo-dist
-        run: cargo install cargo-dist --version 0.17.0 --locke
+        run: cargo install cargo-dist --version 0.17.0 --locked

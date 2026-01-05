@@ -3,6 +3,25 @@
 All notable changes to the Zetten task runner will be documented in this file.
 
 ---
+## [1.0.12] – 2026-01-06
+
+### Fixed
+- Finalized and stabilized the multi-channel release pipeline
+- Ensured atomic publishing across PyPI, GitHub Releases, crates.io, and Homebrew
+- Fixed `cargo-dist` execution by pinning and installing the correct tool version
+- Eliminated GitHub Actions artifact conflicts in multi-platform builds
+
+### Changed
+- Hardened CI workflows to prevent tag reuse and partial releases
+- Standardized release sequencing and safety checks across all distribution channels
+- Improved reproducibility and release determinism
+
+### Notes
+- This release contains **no functional or behavioral changes**
+- It is the **first fully synchronized release** across all distribution channels
+- Recommended upgrade for all users to ensure consistent installation sources
+
+---
 
 ## [1.0.11] – 2026-01-06
 
