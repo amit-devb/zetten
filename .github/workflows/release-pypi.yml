@@ -48,12 +48,12 @@ jobs:
           targets: ${{ matrix.target }}
 
       # --------------------
-      # MSRV check (Rust 1.70)
+      # MSRV check (Rust 1.74)
       # --------------------
-      - name: Check MSRV (Rust 1.70)
+      - name: Check MSRV (Rust 1.74)
         run: |
-          rustup toolchain install 1.70
-          cargo +1.70 build
+          rustup toolchain install 1.74
+          cargo +1.74 build
 
       # --------------------
       # macOS compatibility
