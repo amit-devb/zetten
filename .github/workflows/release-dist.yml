@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_branch }}
-          fetch-depth: 0   # ← REQUIRED for tags
+          fetch-depth: 0
 
       - name: Install stable Rust
         uses: dtolnay/rust-toolchain@stable
@@ -36,7 +36,7 @@ jobs:
       - name: Install cargo-dist
         run: cargo install cargo-dist --version 0.17.0 --locked
 
-      - name: Verify tag context (debug)
+      - name: Verify tag context
         run: |
           git describe --tags --exact-match
           git tag --points-at HEAD
@@ -44,4 +44,4 @@ jobs:
       - name: Run cargo-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: cargo dist
+        run: cargo dist build
