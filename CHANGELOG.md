@@ -3,6 +3,31 @@
 All notable changes to the Zetten task runner will be documented in this file.
 
 ---
+## [1.0.13] – 2026-01-07
+
+### Fixed
+- Restored GitHub Releases creation for tagged releases
+- Fixed release workflows being skipped due to incorrect `workflow_run` conditions
+- Ensured `cargo-dist` runs with proper tag context and full git history
+- Prevented crates.io publishing from being skipped on valid tag pushes
+
+### Changed
+- Hardened release automation across all distribution channels
+- Standardized tag detection logic for chained GitHub Actions workflows
+- Improved reliability of multi-step releases (PyPI → GitHub Releases → crates.io)
+
+### Notes
+- This release contains **no functional or behavioral changes**
+- It exists to fully stabilize and align the release pipeline
+- This is the **recommended release** for all users after earlier partial releases
+- Future releases will now publish consistently across:
+  - PyPI
+  - GitHub Releases
+  - crates.io
+  - Homebrew
+
+---
+
 ## [1.0.12] – 2026-01-06
 
 ### Fixed
