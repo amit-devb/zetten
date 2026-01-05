@@ -7,7 +7,9 @@ on:
 
 jobs:
   build:
+    name: Build wheels (${{ matrix.target }})
     runs-on: ${{ matrix.os }}
+
     strategy:
       fail-fast: false
       matrix:
@@ -22,51 +24,87 @@ jobs:
             target: x86_64-pc-windows-msvc
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      # ⚡ Fast builds (Astral-style)
-      - uses: actions/cache@v4
+      # --------------------
+      # Cargo cache
+      # --------------------
+      - name: Cache cargo
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - uses: dtolnay/rust-toolchain@stable
+      # --------------------
+      # Stable Rust (for release builds)
+      # --------------------
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-          
+
+      # --------------------
+      # MSRV check (Rust 1.70)
+      # --------------------
       - name: Check MSRV (Rust 1.70)
         run: |
-            rustup toolchain install 1.70
-            cargo +1.70 build --locked
+          rustup toolchain install 1.70
+          cargo +1.70 build
 
-      - uses: actions/setup-python@v5
+      # --------------------
+      # macOS compatibility
+      # --------------------
+      - name: Set macOS deployment target
+        if: runner.os == 'macOS'
+        run: |
+          echo "MACOSX_DEPLOYMENT_TARGET=11.0" >> $GITHUB_ENV
+
+      # --------------------
+      # Python + maturin
+      # --------------------
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
       - name: Install maturin
         run: pip install maturin
 
+      # --------------------
+      # Build wheels (locked!)
+      # --------------------
       - name: Build wheels
-        run: maturin build --release --target ${{ matrix.target }}
+        run: maturin build --release --locked --target ${{ matrix.target }}
 
-      - uses: actions/upload-artifact@v4
+      # --------------------
+      # Upload wheels
+      # --------------------
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
         with:
           name: wheels
           path: target/wheels/*.whl
 
   publish:
+    name: Publish to PyPI
     needs: build
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download wheels
+        uses: actions/download-artifact@v4
         with:
           name: wheels
           path: wheels
 
-      - name: Publish to PyPI
+      - name: Install maturin
+        run: pip install maturin
+
+      - name: Publish wheels to PyPI
         env:
           MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
         run: maturin upload wheels/*.whl
