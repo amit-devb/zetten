@@ -11,7 +11,6 @@ homepage = "https://docs.zetten.in"
 documentation = "https://docs.zetten.in"
 keywords = ["task-runner", "python", "build", "cli", "fastapi"]
 categories = ["command-line-utilities", "development-tools"]
-rust-version = "1.74"
 
 [dependencies]
 anyhow = "1"
