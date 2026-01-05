@@ -11,14 +11,18 @@ permissions:
 
 jobs:
   dist:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      startsWith(github.event.workflow_run.head_branch, 'v')
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository at release commit
+      - name: Checkout repository at tag
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.event.workflow_run.head_branch }}
+          fetch-depth: 0   # ← REQUIRED for tags
 
       - name: Install stable Rust
         uses: dtolnay/rust-toolchain@stable
@@ -26,8 +30,18 @@ jobs:
       - name: Cache cargo-dist
         uses: actions/cache@v4
         with:
-          path: ~/.cargo/bin
-          key: cargo-dist-${{ runner.os }}
+          path: ~/.cargo/bin/cargo-dist
+          key: cargo-dist-0.17.0-${{ runner.os }}
 
       - name: Install cargo-dist
         run: cargo install cargo-dist --version 0.17.0 --locked
+
+      - name: Verify tag context (debug)
+        run: |
+          git describe --tags --exact-match
+          git tag --points-at HEAD
+
+      - name: Run cargo-dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: cargo dist

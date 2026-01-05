@@ -13,3 +13,5 @@ targets = [
 
 installers = ["shell", "powershell", "homebrew"]
 ci = ["github"]
+
+release-notes = "CHANGELOG.md"
