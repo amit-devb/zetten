@@ -12,15 +12,22 @@ permissions:
 jobs:
   dist:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository at release commit
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
 
-      - name: Run cargo-dist
-        run: cargo dist
+      - name: Cache cargo-dist
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin
+          key: cargo-dist-${{ runner.os }}
+
+      - name: Install cargo-dist
+        run: cargo install cargo-dist --version 0.17.0 --locke

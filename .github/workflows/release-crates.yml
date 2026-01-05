@@ -8,24 +8,41 @@ on:
 
 jobs:
   publish:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      startsWith(github.event.workflow_run.head_branch, 'refs/tags/')
     runs-on: ubuntu-latest
 
     environment:
       name: crates-release
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository at release commit
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
 
-      - name: Check if version already published
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      # ✅ Reliable version extraction
+      - name: Read crate version
+        id: version
         run: |
           VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
-          if cargo search zetten | grep -q "$VERSION"; then
-            echo "Version $VERSION already exists on crates.io"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      # ✅ Correct crates.io existence check
+      - name: Check if version already published
+        run: |
+          CRATE="zetten"
+          VERSION="${{ steps.version.outputs.version }}"
+
+          if curl -fsSL "https://crates.io/api/v1/crates/${CRATE}/${VERSION}" > /dev/null; then
+            echo "Version ${VERSION} already exists on crates.io"
             exit 1
           fi
 
