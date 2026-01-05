@@ -1,6 +1,6 @@
 [package]
 name = "zetten"
-version = "1.0.9"
+version = "1.0.10"
 edition = "2021"
 authors = ["Amit Deb <deb.amit2013@gmail.com>"]
 description = "Fast, Python-aware task runner with deterministic caching and DAG-based scheduling"
@@ -11,6 +11,7 @@ homepage = "https://docs.zetten.in"
 documentation = "https://docs.zetten.in"
 keywords = ["task-runner", "python", "build", "cli", "fastapi"]
 categories = ["command-line-utilities", "development-tools"]
+rust-version = "1.70"
 
 [dependencies]
 anyhow = "1"
@@ -39,3 +40,8 @@ opt-level = 3
 lto = true
 codegen-units = 1
 strip = true
+
+
+[[bin]]
+name = "zetten"
+path = "src/main.rs"
