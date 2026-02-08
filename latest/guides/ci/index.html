@@ -15,7 +15,7 @@
         <link rel="canonical" href="https://docs.zetten.in/latest/guides/ci/">
       
       
-        <link rel="prev" href="../../features/tags/">
+        <link rel="prev" href="../../features/execution/">
       
       
         <link rel="next" href="../config/">
@@ -483,12 +483,6 @@
       
         
       
-        
-      
-        
-      
-        
-      
     
     
     
@@ -605,90 +599,6 @@
     
   
     Worker Pool
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../features/scripts/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Script Execution
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../features/dependencies/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Dependencies
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../features/tags/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Tags
   
 
     
@@ -1145,18 +1055,18 @@ cmd = &quot;ruff check src&quot;
 inputs = [&quot;src/&quot;]
 </code></pre>
 <h3 id="run-the-the-task-in-ci">Run the the task in CI</h3>
-<pre><code class="language-bash">ztn run --tag ci
+<pre><code class="language-bash">zetten run --tag ci
 </code></pre>
 <h3 id="force-a-specific-version-and-environment-in-ci">Force a specific version and environment in CI</h3>
-<pre><code class="language-bash">ztn run --tag ci -k VERSION=${GITHUB_SHA} -k ENV=prod
+<pre><code class="language-bash">zetten run --tag ci -k VERSION=${GITHUB_SHA} -k ENV=prod
 </code></pre>
 <p>If a foundational task fails, Zetten halts downstream execution immediately to save CI minutes and prevent cascading failures.</p>
 <h3 id="practical-example-cicd">Practical Example: CI/CD</h3>
 <p>In a GitHub Action, you might want to pass the commit SHA into your build task:</p>
 <ul>
 <li>Config: <code>cmd = "echo Building version ${VERSION:-dev}"</code></li>
-<li>Local Run: <code>ztn run build → Output: "Building version dev"</code></li>
-<li>CI Run: <code>ztn run build -k VERSION=${{ github.sha }} → Output: "Building version a1b2c3d...</code></li>
+<li>Local Run: <code>zetten run build → Output: "Building version dev"</code></li>
+<li>CI Run: <code>zetten run build -k VERSION=${{ github.sha }} → Output: "Building version a1b2c3d...</code></li>
 </ul>
 
 
@@ -1187,7 +1097,7 @@ inputs = [&quot;src/&quot;]
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../../features/tags/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Tags">
+          <a href="../../features/execution/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Worker Pool">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1197,7 +1107,7 @@ inputs = [&quot;src/&quot;]
                 Previous
               </span>
               <div class="md-ellipsis">
-                Tags
+                Worker Pool
               </div>
             </div>
           </a>

@@ -508,6 +508,28 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#1-initialize-your-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Initialize your project
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-define-your-first-task" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Define your first task
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#3-run-the-task" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -534,12 +556,6 @@
   
     
     
-      
-        
-      
-        
-      
-        
       
         
       
@@ -663,90 +679,6 @@
     
   
     Worker Pool
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../features/scripts/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Script Execution
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../features/dependencies/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Dependencies
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../features/tags/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Tags
   
 
     
@@ -1036,6 +968,28 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#1-initialize-your-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Initialize your project
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-define-your-first-task" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Define your first task
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#3-run-the-task" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1067,7 +1021,13 @@
 
 
 <h1 id="quickstart">Quickstart</h1>
-<p>Getting started with Zztn initakes less than a minute.</p>
+<p>Getting started with Zetten takes less than a minute.</p>
+<h2 id="1-initialize-your-project">1. Initialize your project</h2>
+<p>Run the following command in your project root to create a base configuration:</p>
+<pre><code class="language-bash">zetten init
+</code></pre>
+<hr />
+<h2 id="2-define-your-first-task">2. Define your first task</h2>
 <p>Open your pyproject.toml and add a task for your linter:</p>
 <pre><code class="language-toml">[tool.zetten.tasks.lint]
 cmd = &quot;ruff check src&quot;
@@ -1076,7 +1036,7 @@ inputs = [&quot;src/&quot;]
 <hr />
 <h2 id="3-run-the-task">3 Run the task</h2>
 <p>Execute the task using the run command:</p>
-<pre><code class="language-bash">ztn run lint
+<pre><code class="language-bash">zetten run lint
 </code></pre>
 
 
