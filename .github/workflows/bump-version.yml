@@ -51,8 +51,8 @@ jobs:
           git add Cargo.toml Cargo.lock pyproject.toml
           git commit -m "chore: bump version to $NEW_VERSION"
           
-          # 3. Push the branch
-          git push origin "$BRANCH_NAME"
+          # 3. Push the branch (Force push to overwrite any existing release branch for this version)
+          git push origin "$BRANCH_NAME" --force
           
           # 4. Create Pull Request (using GitHub CLI)
           gh pr create \
