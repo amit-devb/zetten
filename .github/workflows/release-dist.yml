@@ -1,4 +1,4 @@
-name: Release Dist
+name: Release Binaries
 
 on:
   workflow_run:
@@ -10,38 +10,52 @@ permissions:
   contents: write
 
 jobs:
-  dist:
+  release-binaries:
     if: >
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'push' &&
       startsWith(github.event.workflow_run.head_branch, 'v')
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            binary_name: ztn
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            binary_name: ztn
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            binary_name: ztn.exe
 
     steps:
       - name: Checkout repository at tag
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_branch }}
-          fetch-depth: 0   # ← REQUIRED for tags
 
       - name: Install stable Rust
         uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache cargo-dist
-        uses: actions/cache@v4
         with:
-          path: ~/.cargo/bin/cargo-dist
-          key: cargo-dist-0.17.0-${{ runner.os }}
+          targets: ${{ matrix.target }}
 
-      - name: Install cargo-dist
-        run: cargo install cargo-dist --version 0.17.0 --locked
+      - name: Build Binary
+        run: cargo build --release --target ${{ matrix.target }}
 
-      - name: Verify tag context (debug)
+      - name: Rename and Pack Binary
+        shell: bash
         run: |
-          git describe --tags --exact-match
-          git tag --points-at HEAD
+          cd target/${{ matrix.target }}/release
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            7z a ../../../${{ matrix.binary_name }}-${{ matrix.target }}.zip ${{ matrix.binary_name }}
+          else
+            tar -czvf ../../../${{ matrix.binary_name }}-${{ matrix.target }}.tar.gz ${{ matrix.binary_name }}
+          fi
 
-      - name: Run cargo-dist
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: cargo dist
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ${{ matrix.binary_name }}-${{ matrix.target }}.*
+          tag_name: ${{ github.event.workflow_run.head_branch }}

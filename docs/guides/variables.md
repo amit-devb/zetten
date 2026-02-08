@@ -1,6 +1,6 @@
 # Variable Hints & Interpolation
 
-Zetten features a powerful, deterministic variable system. It allows you to write one command that adapts to different environments without changing the configuration file.
+Zztn watchures a powerful, deterministic variable system. It allows you to write one command that adapts to different environments without changing the configuration file.
 
 ## Syntax
 In your cmd strings, you can reference variables using the standard shell-like syntax:
@@ -23,7 +23,7 @@ Zetten resolves variables using a "Strict Tier" system. If a variable is defined
 #### Tier 1: CLI Overrides (Highest):
 Values passed directly via the -k (or --key) flag. This is used for "one-off" changes.
 ```bash
-zetten run build -k DEST=build_output
+ztn run build -k DEST=build_output
 ```
 
 #### Tier 2: Config File
@@ -38,7 +38,7 @@ DEST = "local_cache"
 Standard system environment variables (e.g., $USER, $PATH, or variables exported in your shell).
 ```bash 
 export DEST=system_dist
-zetten run build
+ztn run build
 ```
 
 ---

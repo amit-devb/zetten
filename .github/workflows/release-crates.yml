@@ -2,7 +2,7 @@ name: Release crates.io
 
 on:
   workflow_run:
-    workflows: ["Release Dist"]
+    workflows: ["Release Binaries"]
     types:
       - completed
 
@@ -35,7 +35,7 @@ jobs:
 
       - name: Check if version already published
         run: |
-          CRATE="zetten"
+          CRATE="ztn"
           VERSION="${{ steps.version.outputs.version }}"
 
           if curl -fsSL "https://crates.io/api/v1/crates/${CRATE}/${VERSION}" > /dev/null; then

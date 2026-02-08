@@ -43,7 +43,14 @@ pip install zetten
 Initiate a project:
 
 ```bash
-zetten init
+ztn init
+```
+
+For Python script execution:
+```toml
+[tool.zetten.tasks.hello]
+script = "my_module:main"  # Runs: python -c "import my_module; my_module.main()"
+description = "Run a python function"
 ```
 
 Define tasks in pyproject.toml:
@@ -86,8 +93,8 @@ tags = ["ci"]
 
 Run tasks:
 ```bash
-zetten run test
-zetten run lint test
+ztn run test
+ztn run lint test
 ```
 Zetten will only re-run tasks when their inputs change.
 
@@ -95,7 +102,7 @@ Zetten will only re-run tasks when their inputs change.
 
 ## ⚙️ The Variable Hierarchy
 Zetten uses a deterministic three-tier system to resolve variables:
-- Tier 1 (CLI): zetten run build -k build_dir=output (Highest Priority)
+- Tier 1 (CLI): ztn run build -k build_dir=output (Highest Priority)
 - Tier 2 (Config): Values defined in [tool.zetten.vars]
 - Tier 3 (Env): System environment variables (e.g., $USER, $PATH)
 
@@ -105,7 +112,7 @@ Zetten uses a deterministic three-tier system to resolve variables:
 Zetten is designed for the modern CI/CD pipeline. By using Tags and Strict Mode, you can ensure your pipeline is both flexible and safe.
 ```bash
 # Force a specific version and environment in CI
-zetten run --tag ci -k VERSION=${GITHUB_SHA} -k ENV=prod
+ztn run --tag ci -k VERSION=${GITHUB_SHA} -k ENV=prod
 ```
 
 If a foundational task fails, Zetten halts downstream execution immediately to save CI minutes and prevent cascading failures.
@@ -127,12 +134,13 @@ If no configuration is found, Zetten will explain how to resolve the issue.
 
 
 ## 🛠 Commands
-- zetten run <tasks> — Execute tasks with parallel dependency resolution.
-- zetten run <task> -k KEY=VAL — Override any variable via the CLI.
-- zetten watch <tasks> — Precision re-runs on input changes.
-- zetten graph — Visualizes the Directed Acyclic Graph (DAG) of your tasks.
-- zetten doctor — Diagnoses configuration and environmental health issues.
-- zetten init — Interactive project setup and template generation.
+## 🛠 Commands
+- ztn run <tasks> — Execute tasks with parallel dependency resolution.
+- ztn run <task> -k KEY=VAL — Override any variable via the CLI.
+- ztn watch <tasks> — Precision re-runs on input changes.
+- ztn graph — Visualizes the Directed Acyclic Graph (DAG) of your tasks.
+- ztn doctor — Diagnoses configuration and environmental health issues.
+- ztn init — Interactive project setup and template generation.
 
 ---
 

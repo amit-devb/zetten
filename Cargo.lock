@@ -1361,8 +1361,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "zetten"
-version = "1.0.13"
+name = "ztn"
+version = "1.0.14"
 dependencies = [
  "anyhow",
  "clap",

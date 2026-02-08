@@ -2,7 +2,7 @@ name: Release Smoke Test
 
 on:
   workflow_run:
-    workflows: ["Release Dist"]
+    workflows: ["Release Binaries"]
     types: [completed]
 
 jobs:
@@ -25,7 +25,7 @@ jobs:
         run: python -m pip install --upgrade pip pipx
 
       - name: Install via pipx
-        run: pipx install zetten
+        run: pipx install ztn
 
       - name: Run CLI
-        run: zetten --help
+        run: ztn --help

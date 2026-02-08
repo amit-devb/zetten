@@ -1,40 +1,41 @@
 # CLI Commands
 
-### `init`
-Interactive project setup and template generation.
-```bash
-zetten init
-```
+The primary binary is `ztn`.
 
+## `ztn run`
 
-### `run`
 Execute tasks.
+
 ```bash
-zetten run <task_name>
+ztn run [TASKS]... [FLAGS]
 ```
 
-### `watch`
-Re-run tasks when inputs change.
+### Flags
+- `-w, --workers <NUM>`: Set number of parallel workers (default: auto).
+- `--dry-run`: Show execution plan without running commands.
+- `-t, --tag <EXPR>`: Filter tasks by tag expression (e.g., `ci+!slow`).
+- `-k, --key-value <KEY>=<VAL>`: Override a configuration variable.
+
+## `ztn watch`
+
+Watch for file changes and re-run tasks.
+
 ```bash
-zetten watch <task_name>
+ztn watch [TASKS]...
 ```
 
-### `graph`
-Inspect the task dependency graph.
-```bash
-zetten graph
-```
+## `ztn init`
 
-### `doctor`
-Diagnose configuration and environment issues.
-```bash
-zetten doctor
-```
+Initialize a new project with an interactive template selector.
 
-### `completions`
+## `ztn doctor`
+
+Check environment health (Rust, Python, Config).
+
+## `ztn completions`
+
 Generate shell completion scripts
 
 ```bash
-zetten completion <SHELL>
+ztn completions <SHELL>
 ```
-

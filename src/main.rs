@@ -108,8 +108,8 @@ fn load_config_safe() -> Option<Config> {
 }
 
 fn show_usage_guide(config: Option<&Config>) {
-    println!("{}", "\n--- Zetten Usage Guide ---".bold().blue());
-    println!("Usage: {} {}", "zetten".green(), "[COMMAND]".cyan());
+    println!("{}", "\n--- Zetten (ztn) Usage Guide ---".bold().blue());
+    println!("Usage: {} {}", "ztn".green(), "[COMMAND]".cyan());
     if let Some(cfg) = config {
         println!("\n{}", "Detected Tasks:".bold());
         let mut tasks: Vec<_> = cfg.tasks.keys().collect();
@@ -151,7 +151,11 @@ pub fn run_main(cli: Cli) -> Result<()> {
             } else {
                 // Convert CLI Vec to HashMap for the merger
                 let cli_vars: HashMap<String, String> = kv.into_iter().collect();
-                run_tasks(tasks, workers, dry_run, args, tag, cli_vars)
+                let exit_code = run_tasks(tasks, workers, dry_run, args, tag, cli_vars)?;
+                if exit_code != 0 {
+                    std::process::exit(exit_code);
+                }
+                Ok(())
             }
         }
         Command::Watch { tasks } => {
@@ -190,7 +194,7 @@ pub(crate) fn run_tasks(
     args: Vec<String>,
     tag_filter: Option<String>,
     cli_vars: HashMap<String, String>, // Added
-) -> Result<()> {
+) -> Result<i32> {
     let (root, source) =
         root::find_project_root().map_err(|_| anyhow!("USER_ERROR: Not a project root."))?;
     env::set_current_dir(&root)?;
@@ -216,7 +220,7 @@ pub(crate) fn run_tasks(
         let tagged: Vec<String> = config
             .tasks
             .iter()
-            .filter(|(_, c)| c.tags.contains(t))
+            .filter(|(_, c)| matches_tag_expression(t, &c.tags))
             .map(|(n, _)| n.clone())
             .collect();
         root_tasks.extend(tagged);
@@ -226,7 +230,7 @@ pub(crate) fn run_tasks(
     crate::log::info("🔍 Validating environment...");
     if let Err(e) = validate_execution_env(&config, &task_names) {
         crate::log::user_error(&format!("Validation failed: {}", e));
-        std::process::exit(1);
+        return Ok(1);
     }
 
     if dry_run {
@@ -238,7 +242,7 @@ pub(crate) fn run_tasks(
                 config.tasks[n].resolve_cmd(&args, &all_vars)
             );
         }
-        return Ok(());
+        return Ok(0);
     }
 
     let workers_count = if workers == "auto" {
@@ -248,6 +252,7 @@ pub(crate) fn run_tasks(
     };
     let is_parallel = task_names.len() > 1 && workers_count > 1;
     let mut summary = RunSummary::new();
+
 
     // --- Kahn's Algorithm Setup ---
     let mut indegree: HashMap<String, usize> = HashMap::new();
@@ -300,19 +305,34 @@ pub(crate) fn run_tasks(
             let task_cfg = cfg.tasks.get(&task_name).unwrap();
             let final_cmd = task_cfg.resolve_cmd(&f_args, &vars); // Resolved with hierarchy
 
-            if is_parallel {
-                p.start_task(&task_name);
+            // SETUP PHASE
+            if let Some(setup_task) = &task_cfg.setup {
+                 // Run setup (must be serial for safety/simplicity in this iteration, or we can make it parallel)
+                 // For now, let's treat it as a pre-step.
+                 match execute_task_command(&cfg.tasks[setup_task].resolve_cmd(&f_args, &vars), &[], false, false) {
+                    Ok(r) if !r.is_success => {
+                        let _ = t_tx.send(Ok((task_name.clone(), r, false)));
+                        continue; // Fail early
+                    }
+                    Err(_) => {
+                         // internal error
+                         continue;
+                    }
+                    _ => {}
+                 }
             }
 
+            let interactive = task_cfg.interactive.unwrap_or(false);
             let res: Result<(ExecutionResult, bool)> = (|| {
+                // ... cache logic ...
                 let cache_path = format!(".zetten/cache/{}.hash", task_name);
-                if !task_cfg.inputs.is_empty() && f_args.is_empty() {
+                if !task_cfg.inputs.is_empty() && f_args.is_empty() && !interactive {
                     let hash = compute_hash(&task_cfg.inputs)?;
                     if fs::read_to_string(&cache_path)
                         .map(|s| s == hash)
                         .unwrap_or(false)
                     {
-                        return Ok((
+                         return Ok((
                             ExecutionResult {
                                 is_success: true,
                                 ..Default::default()
@@ -320,19 +340,23 @@ pub(crate) fn run_tasks(
                             true,
                         ));
                     }
-                    let exec =
-                        execute_task_command(&final_cmd, &task_cfg.allow_exit_codes, is_parallel)?;
-                    if exec.is_success {
-                        let _ = fs::create_dir_all(".zetten/cache");
-                        let _ = fs::write(cache_path, hash);
-                    }
-                    Ok((exec, false))
-                } else {
-                    let exec =
-                        execute_task_command(&final_cmd, &task_cfg.allow_exit_codes, is_parallel)?;
-                    Ok((exec, false))
                 }
+                
+                let exec = execute_task_command(&final_cmd, &task_cfg.allow_exit_codes, is_parallel, interactive)?;
+                
+                if exec.is_success && !interactive && !task_cfg.inputs.is_empty() {
+                     let _ = fs::create_dir_all(".zetten/cache");
+                     let _ = fs::write(cache_path, compute_hash(&task_cfg.inputs)?);
+                }
+                Ok((exec, false))
             })();
+
+            // TEARDOWN PHASE
+            if let Some(teardown_task) = &task_cfg.teardown {
+                // Run teardown even if main task failed
+                let _ = execute_task_command(&cfg.tasks[teardown_task].resolve_cmd(&f_args, &vars), &[], false, false);
+            }
+
 
             if is_parallel {
                 p.finish_task();
@@ -410,10 +434,8 @@ pub(crate) fn run_tasks(
         progress.pb.finish_and_clear();
     }
     print_summary(&summary, &config, &task_names);
-    if exit_code != 0 {
-        std::process::exit(exit_code);
-    }
-    Ok(())
+    print_summary(&summary, &config, &task_names);
+    Ok(exit_code)
 }
 
 // --- Summary & Logic Helpers (Preserved) ---
@@ -571,4 +593,35 @@ fn find_closest<'a>(i: &str, opts: Vec<&'a str>) -> Option<&'a str> {
         .filter(|(_, d)| *d <= 2)
         .min_by_key(|(_, d)| *d)
         .map(|(o, _)| o)
+}
+
+fn matches_tag_expression(expr: &str, tags: &[String]) -> bool {
+    // supported: "ci", "ci+slow" (AND), "ci,!slow" (OR/NOT mixed is tricky without parser, let's do simple)
+    // Simple logic: 
+    // ',' = OR
+    // '+' = AND
+    // '!' = NOT
+    // split by comma (OR groups)
+    for group in expr.split(',') {
+        // inside group, all must match (AND)
+        let mut group_match = true;
+        for part in group.split('+') {
+            let part = part.trim();
+            if let Some(negated) = part.strip_prefix('!') {
+                if tags.contains(&negated.to_string()) {
+                    group_match = false;
+                    break;
+                }
+            } else {
+                if !tags.contains(&part.to_string()) {
+                     group_match = false;
+                     break;
+                }
+            }
+        }
+        if group_match {
+            return true;
+        }
+    }
+    false
 }

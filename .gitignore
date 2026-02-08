@@ -29,3 +29,5 @@ coverage/
 .hypothesis/
 .pyre/
 site/
+setup_dev.sh
+tests/verify_features.py

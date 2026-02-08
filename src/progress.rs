@@ -23,10 +23,6 @@ impl Progress {
         }
     }
 
-    pub fn start_task(&self, name: &str) {
-        let active = self.running.fetch_add(1, Ordering::SeqCst) + 1;
-        self.pb.set_message(format!("Running: {} ({} active)", name, active));
-    }
 
     pub fn finish_task(&self) {
         let active = self.running.fetch_sub(1, Ordering::SeqCst) - 1;

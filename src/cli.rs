@@ -2,7 +2,7 @@ use clap::{Parser, Subcommand, ValueEnum};
 
 #[derive(Parser, Debug)]
 #[command(
-    name = "zetten",
+    name = "ztn",
     version,
     about = "Fast, Python-aware task runner",
     long_about = "Zetten is a Rust-based task runner for Python backend projects with deterministic caching, parallel execution, and DAG-based scheduling."
@@ -14,7 +14,7 @@ pub struct Cli {
 
 #[derive(Subcommand, Clone, Debug)]
 pub enum Command {
-    /// Initialize a new Zetten project
+    /// Initialize a new Zetten (ztn) project
     Init {
         /// Name of the template to use
         template: Option<String>,
@@ -37,7 +37,7 @@ pub enum Command {
         #[arg(long)]
         dry_run: bool,
 
-        /// Pass additional arguments to the task command (e.g. zetten run test -- -k login)
+        /// Pass additional arguments to the task command (e.g. ztn run test -- -k login)
         #[arg(last = true)]
         args: Vec<String>,
 

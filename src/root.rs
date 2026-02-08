@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Result};
 use directories::ProjectDirs;
 use std::path::{Path, PathBuf};
+use colored::Colorize;
 
 /// Defines the source of the Zetten configuration
 #[derive(Debug, Clone)]
@@ -19,9 +20,14 @@ pub fn find_project_root() -> Result<(PathBuf, ConfigSource)> {
         // 1. Check for pyproject.toml (Priority 1)
         let pyproject = path.join("pyproject.toml");
         if pyproject.exists() {
-            // Only use it if it contains [tool.zetten] logic 
-            // (the config loader will verify the section exists)
-            return Ok((path.to_path_buf(), ConfigSource::PyProjectToml(pyproject)));
+            // Only use it if it contains [tool.zetten]
+            if let Ok(contents) = std::fs::read_to_string(&pyproject) {
+                if let Ok(value) = toml::from_str::<toml::Value>(&contents) {
+                     if value.get("tool").and_then(|t| t.get("zetten")).is_some() {
+                         return Ok((path.to_path_buf(), ConfigSource::PyProjectToml(pyproject)));
+                     }
+                }
+            }
         }
 
         // 2. Check for zetten.toml (Priority 2)
@@ -38,8 +44,9 @@ pub fn find_project_root() -> Result<(PathBuf, ConfigSource)> {
     }
 
     Err(anyhow!(
-        "USER_ERROR: No Zetten configuration found. \n\
-         Please create a zetten.toml or add [tool.zetten] to your pyproject.toml."
+        "USER_ERROR: No Zetten configuration found.\n\
+         Run {} to create one, or add [tool.zetten] to your pyproject.toml.",
+        "ztn init".bold().green()
     ))
 }
 
