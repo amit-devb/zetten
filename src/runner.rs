@@ -17,7 +17,8 @@ pub struct ExecutionResult {
 pub fn execute_task_command(
     cmd_str: &str, 
     allow_exit_codes: &[i32], 
-    is_parallel: bool
+    is_parallel: bool,
+    interactive: bool,
 ) -> Result<ExecutionResult> {
     let start = Instant::now();
 
@@ -56,17 +57,47 @@ pub fn execute_task_command(
     // PILLAR 3: Output Handling
     // In parallel mode, we pipe so we can buffer logs. 
     // In serial mode, we inherit for real-time interaction.
-    if is_parallel {
+    if is_parallel && !interactive {
         command.stdout(Stdio::piped()).stderr(Stdio::piped());
     } else {
         command.stdout(Stdio::inherit()).stderr(Stdio::inherit());
+        if interactive {    
+            command.stdin(Stdio::inherit());
+        }
     }
 
     // --- PILLAR 2: SPAWN & REGISTER ---
-    let child = command.spawn()
+    let mut child = command.spawn()
         .map_err(|e| anyhow!("Failed to spawn command: {}", e))?;
 
     let child_id = child.id();
+
+    // --- NEW: OUTPUT CONSUMPTION THREADS ---
+    // We must consume the pipes in background threads to avoid deadlocks
+    // if the output exceeds the OS pipe buffer size.
+    let (stdout_thread, stderr_thread) = if is_parallel && !interactive {
+        let stdout = child.stdout.take();
+        let stderr = child.stderr.take();
+
+        let t_out = std::thread::spawn(move || {
+            let mut buf = Vec::new();
+            if let Some(mut out) = stdout {
+                let _ = out.read_to_end(&mut buf);
+            }
+            buf
+        });
+
+        let t_err = std::thread::spawn(move || {
+            let mut buf = Vec::new();
+            if let Some(mut err) = stderr {
+                let _ = err.read_to_end(&mut buf);
+            }
+            buf
+        });
+        (Some(t_out), Some(t_err))
+    } else {
+        (None, None)
+    };
 
     // Register the child handle immediately
     {
@@ -75,28 +106,16 @@ pub fn execute_task_command(
     }
 
     // --- MONITORING LOOP ---
-    let (status, stdout_final, stderr_final) = loop {
+    let status = loop {
         std::thread::sleep(Duration::from_millis(50));
         let mut registry = PROCESS_REGISTRY.lock().unwrap();
         
         if let Some(pos) = registry.iter_mut().position(|c| c.id() == child_id) {
             match registry[pos].try_wait()? {
                 Some(status) => {
-                    // Task finished - pull from registry to collect final output
-                    let mut finished_child = registry.remove(pos);
-                    let mut stdout_buf = Vec::new();
-                    let mut stderr_buf = Vec::new();
-                    
-                    if is_parallel {
-                        if let Some(mut out) = finished_child.stdout.take() {
-                            let _ = out.read_to_end(&mut stdout_buf);
-                        }
-                        if let Some(mut err) = finished_child.stderr.take() {
-                            let _ = err.read_to_end(&mut stderr_buf);
-                        }
-                    }
-                    
-                    break (status, stdout_buf, stderr_buf);
+                    // Task finished - remove from registry
+                    let _ = registry.remove(pos);
+                    break Some(status);
                 }
                 None => {
                     // Still running, drop lock to allow other threads to access registry
@@ -105,16 +124,27 @@ pub fn execute_task_command(
             }
         } else {
             // If the ID is gone, the Ctrl+C handler killed the process and cleared the registry
-            return Ok(ExecutionResult {
-                exit_code: 130,
-                is_success: false,
-                duration: start.elapsed(),
-                ..Default::default()
-            });
+            break None;
         }
     };
 
-    let exit_code = status.code().unwrap_or(0);
+    let (exit_code, stdout_final, stderr_final) = match status {
+        Some(s) => {
+            let stdout = if let Some(t) = stdout_thread {
+                t.join().unwrap_or_default()
+            } else {
+                Vec::new()
+            };
+            let stderr = if let Some(t) = stderr_thread {
+                t.join().unwrap_or_default()
+            } else {
+                Vec::new()
+            };
+            (s.code().unwrap_or(0), stdout, stderr)
+        },
+        None => (130, Vec::new(), Vec::new()),
+    };
+
     let is_success = exit_code == 0 || allow_exit_codes.contains(&exit_code);
 
     Ok(ExecutionResult {

@@ -45,6 +45,9 @@ nav:
     - Determinism: features/determinism.md
     - Caching: features/caching.md
     - Worker Pool: features/execution.md
+    - Script Execution: features/scripts.md
+    - Dependencies: features/dependencies.md
+    - Tags: features/tags.md
   - Guides:
     - CI Usage: guides/ci.md
     - Configuration: guides/config.md

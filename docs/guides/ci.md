@@ -12,12 +12,12 @@ inputs = ["src/"]
 
 ### Run the the task in CI
 ```bash
-zetten run --tag ci
+ztn run --tag ci
 ```
 
 ### Force a specific version and environment in CI
 ```bash
-zetten run --tag ci -k VERSION=${GITHUB_SHA} -k ENV=prod
+ztn run --tag ci -k VERSION=${GITHUB_SHA} -k ENV=prod
 ```
 
 If a foundational task fails, Zetten halts downstream execution immediately to save CI minutes and prevent cascading failures.
@@ -28,5 +28,5 @@ If a foundational task fails, Zetten halts downstream execution immediately to s
 In a GitHub Action, you might want to pass the commit SHA into your build task:
 
 - Config: `cmd = "echo Building version ${VERSION:-dev}"`
-- Local Run: `zetten run build → Output: "Building version dev"`
-- CI Run: `zetten run build -k VERSION=${{ github.sha }} → Output: "Building version a1b2c3d...`
+- Local Run: `ztn run build → Output: "Building version dev"`
+- CI Run: `ztn run build -k VERSION=${{ github.sha }} → Output: "Building version a1b2c3d...`

@@ -15,17 +15,20 @@ pub fn validate_execution_env(config: &Config, task_names: &[String]) -> Result<
             .ok_or_else(|| anyhow!("Task {} not found", name))?;
 
         // 1. COMMAND VALIDATION
-        let cmd_primary = task.cmd.split_whitespace().next().unwrap_or("");
-        if !command_exists(cmd_primary) {
-            let error_msg = format!(
-                "{} Task '{}' requires binary '{}', but it was not found in PATH.",
-                "✘".red(), name.bold(), cmd_primary.yellow()
-            );
-            
-            if let Some(hint) = &task.hint {
-                errors.push(format!("{}\n   {} {}", error_msg, "💡 Tip:".cyan(), hint));
-            } else {
-                errors.push(error_msg);
+        // 1. COMMAND VALIDATION
+        if let Some(cmd) = &task.cmd {
+            let cmd_primary = cmd.split_whitespace().next().unwrap_or("");
+            if !cmd_primary.is_empty() && !command_exists(cmd_primary) {
+                let error_msg = format!(
+                    "{} Task '{}' requires binary '{}', but it was not found in PATH.",
+                    "✘".red(), name.bold(), cmd_primary.yellow()
+                );
+                
+                if let Some(hint) = &task.hint {
+                    errors.push(format!("{}\n   {} {}", error_msg, "💡 Tip:".cyan(), hint));
+                } else {
+                    errors.push(error_msg);
+                }
             }
         }
 

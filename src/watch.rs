@@ -20,7 +20,7 @@ pub fn run(initial_config: &Config, task_names: &[String]) -> Result<()> {
     crate::log::info("Precision Watch active. Waiting for changes...");
     
     // Initial run - Added empty HashMap for Argument #6
-    let _ = crate::run_tasks(task_names.to_vec(), "auto".to_string(), false, vec![], None, HashMap::new());
+    let _ = crate::run_tasks(task_names.to_vec(), "auto".to_string(), false, vec![], None, HashMap::new()); // interactive=false (default)
 
     let mut last_event_time = Instant::now();
     let debounce_duration = Duration::from_millis(300);
@@ -63,7 +63,7 @@ pub fn run(initial_config: &Config, task_names: &[String]) -> Result<()> {
                         if !affected.is_empty() {
                             println!("\n{}", "🔄 Changes detected. Re-running affected tasks...".bold().cyan());
                             // Re-run call - Added empty HashMap for Argument #6
-                            let _ = crate::run_tasks(affected, "auto".to_string(), false, vec![], None, HashMap::new());
+                            let _ = crate::run_tasks(affected, "auto".to_string(), false, vec![], None, HashMap::new()); // interactive=false (default)
                         }
                     }
                     pending_paths.clear();

@@ -20,7 +20,7 @@ pub fn select_template() -> Result<String> {
 pub fn show_selector() -> Result<()> {
     // 1. Find project and load config
     let (root, source) = root::find_project_root()
-        .map_err(|_| anyhow!("USER_ERROR: No project found. Run `zetten init`."))?;
+        .map_err(|_| anyhow!("USER_ERROR: No project found. Run `ztn init`."))?;
     env::set_current_dir(&root)?;
     let config = Config::load(&source)?;
 
@@ -41,7 +41,8 @@ pub fn show_selector() -> Result<()> {
         Ok(choice) => {
             println!("Selected: {}", choice);
             // Argument #6: HashMap::new() ensures the 3-tier system has a map to check
-            crate::run_tasks(vec![choice], "auto".to_string(), false, vec![], None, HashMap::new())
+            crate::run_tasks(vec![choice], "auto".to_string(), false, vec![], None, HashMap::new())?; // interactive=false
+            Ok(())
         }
         Err(_) => {
             println!("Exited.");

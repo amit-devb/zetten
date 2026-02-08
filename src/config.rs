@@ -20,7 +20,12 @@ pub struct Config {
 
 #[derive(Deserialize, Clone)]
 pub struct TaskConfig {
-    pub cmd: String,
+    pub cmd: Option<String>,
+    pub script: Option<String>, // Python script execution
+    pub interactive: Option<bool>, // Interactive mode
+    pub setup: Option<String>, // Explicit setup task
+    pub teardown: Option<String>, // Teardown task
+
     #[serde(default = "default_description")]
     pub description: String,
     pub hint: Option<String>,
@@ -48,7 +53,16 @@ fn default_description() -> String {
 impl TaskConfig {
     /// Resolves the command string using the hierarchy: CLI > TOML > ENV
     pub fn resolve_cmd(&self, extra_args: &[String], all_vars: &HashMap<String, String>) -> String {
-        let mut resolved = self.cmd.clone();
+        if let Some(script) = &self.script {
+            // "my_module:main" -> "python -c 'import my_module; my_module.main()'"
+            // We treat the script as the command source if present
+            if let Some((module, func)) = script.split_once(':') {
+                return format!("python -c \"import {}; {}.{}()\"", module, module, func);
+            }
+            return format!("python {}", script);
+        }
+
+        let mut resolved = self.cmd.clone().unwrap_or_default();
 
         // 1. Resolve ${VAR:-default}
         resolved = RE_VAR_DEFAULT

@@ -1,6 +1,6 @@
 [package]
-name = "zetten"
-version = "1.0.13"
+name = "ztn"
+version = "1.0.14"
 edition = "2021"
 authors = ["Amit Deb <deb.amit2013@gmail.com>"]
 description = "Fast, Python-aware task runner with deterministic caching and DAG-based scheduling"
@@ -42,5 +42,5 @@ strip = true
 
 
 [[bin]]
-name = "zetten"
+name = "ztn"
 path = "src/main.rs"

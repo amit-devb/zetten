@@ -22,13 +22,13 @@ inputs = ["src/", "tests/"]
 ## Resolution Rules
 Zetten follows a strict logic to find your settings. If the configuration is missing or ambiguous, Zetten will fail with an explanation rather than trying to guess.
 
-- Check pyproject.toml: If it exists and contains a [tool.zetten] header, Zetten uses it.
+- Check pyproject.toml: If it exists and contains a [tool.zetten] header, Zztn uses it.
 - Check zetten.toml: If pyproject.toml doesn't have Zetten settings, it looks for this file.
 - Initialization: If neither is found, the project is considered uninitialized.
 
 **To fix a missing configuration, run:**
 ```bash
-zetten init
+ztn init
 ```
 
 ### Example: Defining a Task
