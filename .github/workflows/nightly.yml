@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: nightly-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   nightly:
     runs-on: ubuntu-latest
