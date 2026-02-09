@@ -43,6 +43,9 @@ jobs:
           # Update pyproject.toml (simple sed, assuming standard formatting)
           sed -i "s/^version = \".*\"/version = \"$NEW_VERSION\"/" pyproject.toml
 
+          # Sync Cargo.lock
+          cargo metadata --format-version 1 > /dev/null
+
           # 1. Create a new branch
           BRANCH_NAME="release/v$NEW_VERSION"
           git checkout -b "$BRANCH_NAME"
