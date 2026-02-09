@@ -55,16 +55,14 @@ jobs:
           git push origin "$BRANCH_NAME" --force
           
           # 4. Create Pull Request (using GitHub CLI)
-          cat <<EOF > pr_body.txt
-Automated version bump to **v$NEW_VERSION**.
-
-### 🚀 To trigger the release after merging:
-\`\`\`bash
-git checkout main && git pull
-git tag v$NEW_VERSION
-git push origin v$NEW_VERSION
-\`\`\`
-EOF
+          echo "Automated version bump to **v$NEW_VERSION**." > pr_body.txt
+          echo "" >> pr_body.txt
+          echo "### 🚀 To trigger the release after merging:" >> pr_body.txt
+          echo '```bash' >> pr_body.txt
+          echo "git checkout main && git pull" >> pr_body.txt
+          echo "git tag v$NEW_VERSION" >> pr_body.txt
+          echo "git push origin v$NEW_VERSION" >> pr_body.txt
+          echo '```' >> pr_body.txt
 
           gh pr create \
             --title "🚀 Release v$NEW_VERSION" \
