@@ -3,6 +3,10 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
