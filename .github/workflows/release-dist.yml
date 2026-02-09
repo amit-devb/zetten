@@ -10,11 +10,22 @@ permissions:
   contents: write
 
 jobs:
-  release-binaries:
+  create-release:
     if: >
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'push' &&
       startsWith(github.event.workflow_run.head_branch, 'v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Draft Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.workflow_run.head_branch }}
+          draft: true
+          prerelease: false
+
+  release-binaries:
+    needs: create-release
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -53,9 +64,20 @@ jobs:
             tar -czvf ../../../${{ matrix.binary_name }}-${{ matrix.target }}.tar.gz ${{ matrix.binary_name }}
           fi
 
-      - name: Release
+      - name: Upload Release Asset
         uses: softprops/action-gh-release@v1
         with:
           files: |
             ${{ matrix.binary_name }}-${{ matrix.target }}.*
           tag_name: ${{ github.event.workflow_run.head_branch }}
+          draft: true
+
+  publish-release:
+    needs: release-binaries
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.workflow_run.head_branch }}
+          draft: false
