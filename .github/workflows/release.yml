@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -16,6 +17,7 @@ jobs:
   build-pypi-wheels:
     name: Build wheels (${{ matrix.target }})
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -71,7 +73,7 @@ jobs:
       - name: Publish wheels to PyPI
         env:
           MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-        run: maturin upload wheels/**/*.whl
+        run: maturin upload --skip-existing wheels/*/*.whl
 
   create-github-release:
     name: Create GitHub Release
@@ -82,7 +84,7 @@ jobs:
     steps:
       - name: Create Draft Release
         id: create_release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           draft: true
           prerelease: false
@@ -121,25 +123,28 @@ jobs:
             tar -czvf ../../../${{ matrix.binary_name }}-${{ matrix.target }}.tar.gz ${{ matrix.binary_name }}
           fi
       - name: Upload Release Asset
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: ${{ matrix.binary_name }}-${{ matrix.target }}.*
           draft: true
 
   finalize-release:
     name: Publish Release
-    needs: build-and-upload-binaries
+    needs: [build-and-upload-binaries, publish-crates-io]
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Publish Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
+          make_latest: true
           draft: false
 
   publish-crates-io:
     name: Publish to crates.io
-    needs: finalize-release
+    needs: build-and-upload-binaries
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -148,7 +153,15 @@ jobs:
       - name: Publish to crates.io
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_TOKEN }}
-        run: cargo publish --locked
+        run: |
+          # Skip if version already published
+          PACKAGE_NAME=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].name')
+          PACKAGE_VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
+          if curl -s "https://crates.io/api/v1/crates/${PACKAGE_NAME}/${PACKAGE_VERSION}" | grep -q '{"version":{"'; then
+            echo "Version ${PACKAGE_VERSION} already exists on crates.io, skipping."
+          else
+            cargo publish --locked
+          fi
 
   smoke-test:
     name: Smoke Test
@@ -165,4 +178,11 @@ jobs:
       - name: Install via pip
         run: pip install zetten
       - name: Run CLI
-        run: ztn --help
+        run: |
+          for i in {1..5}; do
+            pip install --no-cache-dir zetten && break || {
+              echo "Installation failed, retrying in 30s..."
+              sleep 30
+            }
+          done
+          ztn --help
