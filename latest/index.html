@@ -1011,6 +1011,75 @@
 <li><strong>Output is CI-safe:</strong> Logs and exit codes are designed for automation.</li>
 </ul>
 <p><a href="quickstart/">Get Started</a></p>
+<h2 id="performance">🏎️ Performance</h2>
+<p>Zetten is built for speed. Benchmarks against popular task runners show it provides the fastest developer experience for incremental builds.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Metric</th>
+<th style="text-align: left;">Tool</th>
+<th style="text-align: left;">Time</th>
+<th style="text-align: left;">vs Zetten</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Startup</strong></td>
+<td style="text-align: left;"><strong><code>ztn</code></strong></td>
+<td style="text-align: left;"><strong>2.08 ms</strong></td>
+<td style="text-align: left;"><strong>1.00x</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><em>(CLI overhead)</em></td>
+<td style="text-align: left;"><code>just</code></td>
+<td style="text-align: left;">2.15 ms</td>
+<td style="text-align: left;">1.04x</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>make</code></td>
+<td style="text-align: left;">3.85 ms</td>
+<td style="text-align: left;">1.85x</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>poe</code></td>
+<td style="text-align: left;">41.88 ms</td>
+<td style="text-align: left;">20.15x</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Smart Caching</strong></td>
+<td style="text-align: left;"><strong><code>ztn</code></strong></td>
+<td style="text-align: left;"><strong>3.49 ms</strong></td>
+<td style="text-align: left;"><strong>1.00x</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><em>(No-op re-run)</em></td>
+<td style="text-align: left;"><code>just</code></td>
+<td style="text-align: left;">4.26 ms</td>
+<td style="text-align: left;">1.22x</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>make</code></td>
+<td style="text-align: left;">5.63 ms</td>
+<td style="text-align: left;">1.61x</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><code>poe</code></td>
+<td style="text-align: left;">64.68 ms</td>
+<td style="text-align: left;">18.52x</td>
+</tr>
+</tbody>
+</table>
+<p><em>&gt; Benchmarks run on macOS (Apple Silicon).</em></p>
 <h2 id="what-zetten-is-not">What Zetten Is Not</h2>
 <p>To understand Zetten, it is helpful to know what it is <strong>not</strong>:
 - It is <strong>not</strong> a framework or a workflow engine.
