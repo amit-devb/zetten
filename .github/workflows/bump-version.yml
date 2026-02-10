@@ -40,8 +40,22 @@ jobs:
           NEW_VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
           echo "New Version: $NEW_VERSION"
           
-          # Update pyproject.toml (simple sed, assuming standard formatting)
-          sed -i "s/^version = \".*\"/version = \"$NEW_VERSION\"/" pyproject.toml
+          # Update pyproject.toml safely
+          python << EOF
+          import tomlkit
+          import sys
+
+          version = "$NEW_VERSION"
+          print(f"Updating pyproject.toml to version {version}")
+
+          with open("pyproject.toml", "r") as f:
+              data = tomlkit.parse(f.read())
+
+          data["project"]["version"] = version
+
+          with open("pyproject.toml", "w") as f:
+              f.write(tomlkit.dumps(data))
+          EOF
 
           # Sync Cargo.lock
           cargo metadata --format-version 1 > /dev/null
