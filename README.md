@@ -5,7 +5,7 @@
 [![PyPI - Version](https://img.shields.io/pypi/v/zetten?color=orange&label=pypi)](https://pypi.org/project/zetten/)
 [![PyPI - License](https://img.shields.io/pypi/l/zetten?color=brightgreen&label=license)](https://github.com/amit-devb/zetten/blob/main/LICENSE)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/zetten.svg)](https://pypi.org/project/zetten/)
-[![CI Status](https://img.shields.io/github/check-runs/amit-devb/zetten/main?label=CI&logo=github)](https://github.com/amit-devb/zetten/actions)
+[![Nightly Build](https://github.com/amit-devb/zetten/actions/workflows/nightly.yml/badge.svg)](https://github.com/amit-devb/zetten/actions/workflows/nightly.yml)
 
 Zetten is a dependency-aware execution engine designed to unify how you run tests, linters, and builds. It ensures that your workflow remains identical across local development environments and any CI platform, only faster.
 
@@ -30,6 +30,28 @@ Modern Python projects often require coordinating various tools (tests, type-che
 - **🛡️ Failure Propagation:** If a foundational task fails, Zetten halts downstream execution to prevent cascading errors.
 - **🔍 Intelligent Diagnostics:** Includes `ztn doctor` to identify environment inconsistencies instantly.
 - **⏱️ Performance Analytics:** (Coming Soon) Real-time insights into time saved via parallelism.
+
+---
+
+---
+
+## 🏎️ Performance
+
+Zetten is built for speed. Benchmarks against popular task runners show it provides the fastest developer experience for incremental builds.
+
+| Metric | Tool | Time | vs Zetten |
+| :--- | :--- | :--- | :--- |
+| **Startup** | **`ztn`** | **2.08 ms** | **1.00x** |
+| *(CLI overhead)* | `just` | 2.15 ms | 1.04x |
+| | `make` | 3.85 ms | 1.85x |
+| | `poe` | 41.88 ms | 20.15x |
+| | | | |
+| **Smart Caching** | **`ztn`** | **3.49 ms** | **1.00x** |
+| *(No-op re-run)* | `just` | 4.26 ms | 1.22x |
+| | `make` | 5.63 ms | 1.61x |
+| | `poe` | 64.68 ms | 18.52x |
+
+*> Benchmarks run on macOS (Apple Silicon). Startup measures `tool --version`. Smart Caching measures time to detect no input changes and skip execution.*
 
 ---
 
@@ -144,7 +166,7 @@ If no configuration is found, Zetten will explain how to resolve the issue.
 ---
 
 ## 🛡 Status
-Zetten is currently in **v1.3.1**. If no configuration file is found, Zetten will provide clear instructions on how to initialize your project.
+Zetten is currently in **v1.3.2**. If no configuration file is found, Zetten will provide clear instructions on how to initialize your project.
 
 ---
 
