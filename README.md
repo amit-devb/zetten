@@ -11,19 +11,36 @@ Zetten is a dependency-aware execution engine designed to unify how you run test
 
 ---
 
-## 🚀 The Zetten Philosophy
+## The Zetten Philosophy
 
 Modern Python projects often require coordinating various tools (tests, type-checkers, formatters). Zetten eliminates "Glue Code Fatigue" by providing:
 
 * **Parallel Execution:** Automatically identifies independent tasks and runs them concurrently across your CPU cores.
 * **Three-Tier Variable System:** Advanced command templating with a strict priority hierarchy: CLI Flags (-k) > Config Vars > Environment Variables.
-* **Smart Caching:** Uses content-addressable hashing to skip tasks if their specific inputs haven't changed since the last run.
-* **Platform Agnostic:** Behaves identically on macOS, Windows, Linux, or any CI/CD provider.
-* **Dependency Awareness:** Define a Directed Acyclic Graph (DAG) of tasks to ensure correct execution order (e.g., `setup` always precedes `test`).
+*   **Parallel Execution:** Automatically identifies independent tasks and runs them concurrently across your CPU cores.
+*   **Three-Tier Variable System:** Advanced command templating with a strict priority hierarchy: CLI Flags (-k) > Config Vars > Environment Variables.
+*   **Smart Caching:** Uses content-addressable hashing to skip tasks if their specific inputs haven't changed since the last run.
+*   **Platform Agnostic:** Behaves identically on macOS, Windows, Linux, or any CI/CD provider.
+*   **Dependency Awareness:** Define a Directed Acyclic Graph (DAG) of tasks to ensure correct execution order (e.g., `setup` always precedes `test`).
 
 ---
 
-## ✨ Features
+## 🤖 AI-First (Vibe Coding)
+
+Zetten is designed to be the "API" for ANY AI agent. It comes with built-in configuration files for:
+
+*   **Cursor** (`.cursorrules`)
+*   **Windsurf** (`.windsurfrules`)
+*   **GitHub Copilot** (`.github/copilot-instructions.md`)
+*   **Claude Code** (`CLAUDE.md`)
+
+These files automatically point your AI to `docs/ai_context.md`, ensuring it knows exactly how to build, test, and run your project without hallucinating commands.
+
+> "Zetten allows me to just tell Cursor 'run the tests' and it knows exactly what to do, efficiently."
+
+---
+
+## Features
 
 - **⚡ Worker Pool Concurrency:** Maximizes resource usage by running non-dependent tasks in parallel.
 - **🏷️ CI Tagging:** Execute logical groups of tasks (e.g., `run --tag ci`) with a single command.
@@ -35,7 +52,7 @@ Modern Python projects often require coordinating various tools (tests, type-che
 
 ---
 
-## 🏎️ Performance
+## Performance
 
 Zetten is built for speed. Benchmarks against popular task runners show it provides the fastest developer experience for incremental builds.
 
@@ -52,6 +69,8 @@ Zetten is built for speed. Benchmarks against popular task runners show it provi
 | | `poe` | 64.68 ms | 18.52x |
 
 *> Benchmarks run on macOS (Apple Silicon). Startup measures `tool --version`. Smart Caching measures time to detect no input changes and skip execution.*
+
+[**See Full Methodology & Detailed Results**](docs/benchmarks.md)
 
 ---
 
@@ -122,7 +141,7 @@ Zetten will only re-run tasks when their inputs change.
 
 ---
 
-## ⚙️ The Variable Hierarchy
+## The Variable Hierarchy
 Zetten uses a deterministic three-tier system to resolve variables:
 - Tier 1 (CLI): `ztn run build -k build_dir=output` (Highest Priority)
 - Tier 2 (Config): Values defined in `[tool.zetten.vars]`
@@ -130,7 +149,7 @@ Zetten uses a deterministic three-tier system to resolve variables:
 
 ---
 
-## 🚀 Running in CI
+## Running in CI
 Zetten is designed for the modern CI/CD pipeline. By using Tags and Strict Mode, you can ensure your pipeline is both flexible and safe.
 ```bash
 # Force a specific version and environment in CI
@@ -140,7 +159,7 @@ ztn run --tag ci -k VERSION=${GITHUB_SHA} -k ENV=prod
 If a foundational task fails, Zetten halts downstream execution immediately to save CI minutes and prevent cascading failures.
 
 
-## ⚙️ Configuration Model
+## Configuration Model
 Configuration is explicit by design:
 - No templating
 - No conditionals
@@ -155,7 +174,7 @@ If no configuration is found, Zetten will explain how to resolve the issue.
 ---
 
 
-## 🛠 Commands
+## Commands
 - `ztn run <tasks>` — Execute tasks with parallel dependency resolution.
 - `ztn run <task> -k KEY=VAL` — Override any variable via the CLI.
 - `ztn watch <tasks>` — Precision re-runs on input changes.

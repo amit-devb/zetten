@@ -29,12 +29,12 @@ pub const TEMPLATES: &[Template] = &[
 
 pub const PYTHON: &str = r#"[tasks.format]
 cmd = "ruff format ."
-inputs = ["src/", "tests/"]
+inputs = ["src/", "tests/"] # Cache invalidates if these folders change
 
 [tasks.lint]
 cmd = "ruff check ."
 inputs = ["src/", "tests/"]
-depends_on = ["format"]
+depends_on = ["format"] # Runs format first
 
 [tasks.test]
 cmd = "pytest"
@@ -43,7 +43,7 @@ depends_on = ["lint"]
 allow_exit_codes = [0, 5]
 
 [tasks.release]
-description = "Bump version and tag (usage: zetten run release -- v1.0.0)"
+description = "Bump version and tag (usage: ztn run release -- v1.0.0)"
 cmd = """
 python3 -c "import re; p=re.sub(r'version = \".*\"', 'version = \"$1\"', open('pyproject.toml').read()); open('pyproject.toml', 'w').write(p)" && \
 git add pyproject.toml && \
@@ -79,6 +79,7 @@ inputs = ["."]
 
 pub const DEFAULT: &str = r#"[tasks.hello]
 cmd = "echo 'Hello from Zetten!'"
+inputs = [] # Always run (no caching)
 "#;
 
 pub fn format_for_pyproject(template: &str) -> String {

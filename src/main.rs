@@ -2,6 +2,7 @@ mod cache;
 mod cli;
 mod config;
 mod doctor;
+mod errors; // New module
 mod graph;
 mod init;
 mod log;
@@ -14,15 +15,17 @@ mod validator;
 mod watch;
 
 use crate::progress::Progress;
-use anyhow::{anyhow, Result};
+// Remove global Result imports to avoid ALL confusion
+// use anyhow::{anyhow}; // Use full paths for anyhow types
 use cache::compute_hash;
 use clap::{CommandFactory, Parser};
 use clap_complete::{generate, shells};
 use cli::{Cli, Command};
 use colored::*;
-
 use config::Config;
+use errors::ZettenError; // Import
 use lazy_static::lazy_static;
+use miette::IntoDiagnostic; // Import
 use runner::{execute_task_command, ExecutionResult};
 use std::process::Child;
 use std::{
@@ -39,14 +42,12 @@ lazy_static! {
     static ref PROCESS_REGISTRY: Arc<Mutex<Vec<Child>>> = Arc::new(Mutex::new(Vec::new()));
 }
 
-fn main() -> anyhow::Result<()> {
+fn main() -> miette::Result<()> {
     // 1. CLI Parsing (Fast Path)
     let cli = match Cli::try_parse() {
         Ok(c) => c,
         Err(e) => {
-            if e.kind() == clap::error::ErrorKind::InvalidSubcommand
-                || e.kind() == clap::error::ErrorKind::UnknownArgument
-            {
+            if e.kind() == clap::error::ErrorKind::InvalidSubcommand {
                 let cmd_factory = Cli::command();
                 let subcommands: Vec<&str> = cmd_factory
                     .get_subcommands()
@@ -55,12 +56,14 @@ fn main() -> anyhow::Result<()> {
                 let args: Vec<String> = std::env::args().collect();
                 if args.len() > 1 {
                     if let Some(suggest) = find_closest(&args[1], subcommands) {
-                        crate::log::did_you_mean(&args[1], suggest);
+                         crate::log::did_you_mean(&args[1], suggest);
+                         // If we found a suggestion for the subcommand, exit with usage.
+                         show_usage_guide(load_config_safe().as_ref());
+                         std::process::exit(1);
                     }
                 }
-                show_usage_guide(load_config_safe().as_ref());
-                std::process::exit(1);
             }
+            // For UnknownArgument or if no suggestion found, let Clap print its error
             e.exit();
         }
     };
@@ -80,20 +83,15 @@ fn main() -> anyhow::Result<()> {
         }
         println!("{}", "✔ Cleanup complete. Exiting.".yellow());
         std::process::exit(130);
-    })?;
+    }).into_diagnostic()?;
 
     if Path::new(".env").exists() && dotenvy::dotenv().is_ok() {
         crate::log::info("Environment variables loaded from .env");
     }
 
     if let Err(e) = run_main(cli) {
-        let msg = e.to_string();
-        if msg.starts_with("USER_ERROR:") {
-            crate::log::user_error(msg.trim_start_matches("USER_ERROR:").trim());
-        } else {
-            eprintln!("{} {}", "Error:".red().bold(), e);
-        }
-        std::process::exit(1);
+        // Miette will handle the printing nicely
+        return Err(e);
     }
 
     Ok(())
@@ -120,17 +118,17 @@ fn show_usage_guide(config: Option<&Config>) {
     }
 }
 
-pub fn run_main(cli: Cli) -> Result<()> {
+pub fn run_main(cli: Cli) -> miette::Result<()> {
     let command = match cli.command {
         Some(cmd) => cmd,
-        None => return tui::show_selector(),
+        None => return tui::show_selector().map_err(|e| miette::Report::new(ZettenError::Anyhow(e))),
     };
 
     match command {
         Command::Tasks => {
-            let (root, source) = root::find_project_root()?;
-            env::set_current_dir(&root)?;
-            let config = Config::load(&source)?;
+            let (root, source) = root::find_project_root().map_err(|_| ZettenError::ConfigMissing)?;
+            env::set_current_dir(&root).into_diagnostic()?;
+            let config = Config::load(&source).map_err(|e| ZettenError::Anyhow(e))?;
             let mut keys: Vec<_> = config.tasks.keys().collect();
             keys.sort();
             for name in keys {
@@ -147,7 +145,7 @@ pub fn run_main(cli: Cli) -> Result<()> {
             tag,
         } => {
             if tasks.is_empty() && tag.is_none() {
-                tui::show_selector()
+                tui::show_selector().map_err(|e| miette::Report::new(ZettenError::Anyhow(e)))
             } else {
                 // Convert CLI Vec to HashMap for the merger
                 let cli_vars: HashMap<String, String> = kv.into_iter().collect();
@@ -159,19 +157,20 @@ pub fn run_main(cli: Cli) -> Result<()> {
             }
         }
         Command::Watch { tasks } => {
-            let (root, source) = root::find_project_root()?;
-            env::set_current_dir(&root)?;
-            let config = Config::load(&source)?;
+            let (root, source) = root::find_project_root().map_err(|_| ZettenError::ConfigMissing)?;
+            env::set_current_dir(&root).into_diagnostic()?;
+            let config = Config::load(&source).map_err(|e| ZettenError::Anyhow(e))?;
             if tasks.is_empty() {
-                return Err(anyhow!("USER_ERROR: Please specify which tasks to watch"));
+                return Err(ZettenError::TaskNotFound("No tasks specified".to_string()).into());
             }
-            watch::run(&config, &tasks)
+            watch::run(&config, &tasks).map_err(|e| miette::Report::new(ZettenError::Anyhow(e)))?;
+            Ok(())
         }
-        Command::Doctor => doctor::run(),
+        Command::Doctor => doctor::run().map_err(|e| miette::Report::new(ZettenError::Anyhow(e))),
         Command::Graph => {
-            let (root, source) = root::find_project_root()?;
-            env::set_current_dir(&root)?;
-            graph::run(&Config::load(&source)?)
+            let (root, source) = root::find_project_root().map_err(|_| ZettenError::ConfigMissing)?;
+            env::set_current_dir(&root).into_diagnostic()?;
+            graph::run(&Config::load(&source).map_err(|e| miette::Report::new(ZettenError::Anyhow(e)))?).map_err(|e| miette::Report::new(ZettenError::Anyhow(e)))
         }
         Command::Init { template } => init::init(template.as_deref().unwrap_or("interactive")),
         Command::Completions { shell } => {
@@ -194,16 +193,16 @@ pub(crate) fn run_tasks(
     args: Vec<String>,
     tag_filter: Option<String>,
     cli_vars: HashMap<String, String>, // Added
-) -> Result<i32> {
+) -> Result<i32, ZettenError> { // Return explicit ZettenError Result
     let (root, source) =
-        root::find_project_root().map_err(|_| anyhow!("USER_ERROR: Not a project root."))?;
-    env::set_current_dir(&root)?;
+        root::find_project_root().map_err(|_| ZettenError::ConfigMissing)?;
+    env::set_current_dir(&root).map_err(ZettenError::IoError)?; // std::io::Error -> ZettenError
 
-    let config = Arc::new(Config::load(&source)?);
-    config.validate()?;
+    let config = Arc::new(Config::load(&source).map_err(|e| ZettenError::Anyhow(e))?);
+    config.validate().map_err(|e| ZettenError::Anyhow(e))?;
 
     // --- NEW: THREE-TIER VARIABLE MERGE ---
-    let mut all_vars = HashMap::new();
+    let mut all_vars: HashMap<String, String> = HashMap::new();
     for (k, v) in env::vars() {
         all_vars.insert(k, v);
     } // Tier 3
@@ -221,7 +220,7 @@ pub(crate) fn run_tasks(
             .tasks
             .iter()
             .filter(|(_, c)| matches_tag_expression(t, &c.tags))
-            .map(|(n, _)| n.clone())
+            .map(|(n, _): (&String, _)| n.clone())
             .collect();
         root_tasks.extend(tagged);
     }
@@ -248,7 +247,8 @@ pub(crate) fn run_tasks(
     let workers_count = if workers == "auto" {
         num_cpus::get()
     } else {
-        workers.parse()?
+        workers.parse().map_err(|_| ZettenError::TaskFailed("Invalid worker count".to_string(), 1))? // Reuse existing error or just create one. Actually ParseIntError. 
+        // Simplest: .map_err(|e| ZettenError::Anyhow(anyhow::anyhow!(e)))?
     };
     let is_parallel = task_names.len() > 1 && workers_count > 1;
     let mut summary = RunSummary::new();
@@ -258,12 +258,12 @@ pub(crate) fn run_tasks(
     let mut indegree: HashMap<String, usize> = HashMap::new();
     let mut graph_map: HashMap<String, Vec<String>> = HashMap::new();
     for n in &task_names {
-        indegree.insert(n.clone(), 0);
+        indegree.insert(n.clone(), 0usize);
     }
     for n in &task_names {
         for dep in &config.tasks[n].depends_on {
-            if indegree.contains_key(dep) {
-                *indegree.get_mut(n).unwrap() += 1;
+            if indegree.contains_key(dep.as_str()) {
+                *indegree.get_mut(n.as_str()).unwrap() += 1;
                 graph_map.entry(dep.clone()).or_default().push(n.clone());
             }
         }
@@ -277,7 +277,7 @@ pub(crate) fn run_tasks(
     }
 
     let progress = Arc::new(Progress::new(task_names.len()));
-    let (tx, rx) = mpsc::channel::<Result<(String, ExecutionResult, bool)>>();
+    let (tx, rx) = mpsc::channel::<anyhow::Result<(String, ExecutionResult, bool)>>(); // explicit anyhow::Result
     let work_queue = Arc::new(Mutex::new(VecDeque::<String>::new()));
 
     // Spawn Workers
@@ -307,8 +307,6 @@ pub(crate) fn run_tasks(
 
             // SETUP PHASE
             if let Some(setup_task) = &task_cfg.setup {
-                 // Run setup (must be serial for safety/simplicity in this iteration, or we can make it parallel)
-                 // For now, let's treat it as a pre-step.
                  match execute_task_command(&cfg.tasks[setup_task].resolve_cmd(&f_args, &vars), &[], false, false) {
                     Ok(r) if !r.is_success => {
                         let _ = t_tx.send(Ok((task_name.clone(), r, false)));
@@ -323,7 +321,7 @@ pub(crate) fn run_tasks(
             }
 
             let interactive = task_cfg.interactive.unwrap_or(false);
-            let res: Result<(ExecutionResult, bool)> = (|| {
+            let res: anyhow::Result<(ExecutionResult, bool)> = (|| { // explicit anyhow
                 // ... cache logic ...
                 let cache_path = format!(".zetten/cache/{}.hash", task_name);
                 if !task_cfg.inputs.is_empty() && f_args.is_empty() && !interactive {
@@ -373,7 +371,10 @@ pub(crate) fn run_tasks(
 
     let mut exit_code = 0;
     while in_flight > 0 {
-        let (finished, exec, cached) = rx.recv()??;
+        let (finished, exec, cached) = rx.recv()
+            .map_err(|e| ZettenError::IoError(std::io::Error::new(std::io::ErrorKind::Other, e)))?
+            .map_err(|e| ZettenError::Anyhow(e))?;
+            
         in_flight -= 1;
         summary.task_metrics.insert(finished.clone(), exec.duration);
         let task_cfg = config.tasks.get(&finished).unwrap();
@@ -438,7 +439,6 @@ pub(crate) fn run_tasks(
     Ok(exit_code)
 }
 
-// --- Summary & Logic Helpers (Preserved) ---
 struct RunSummary {
     succeeded: usize,
     cached: usize,
@@ -541,9 +541,11 @@ fn print_summary(s: &RunSummary, config: &Config, task_names: &[String]) {
     }
 }
 
-fn collect_tasks(config: &Config, roots: &[String]) -> Result<Vec<String>> {
+fn collect_tasks(config: &Config, roots: &[String]) -> Result<Vec<String>, ZettenError> { // Return explicit ZettenError result
     let mut expanded = HashSet::new();
     let mut stack = roots.to_vec();
+    
+    // First pass: Expand dependencies
     while let Some(t) = stack.pop() {
         if expanded.insert(t.clone()) {
             if let Some(c) = config.tasks.get(&t) {
@@ -551,22 +553,29 @@ fn collect_tasks(config: &Config, roots: &[String]) -> Result<Vec<String>> {
                     stack.push(d.clone());
                 }
             } else {
-                return Err(anyhow!("USER_ERROR: Task '{}' not found.", t));
+                // Fuzzy search
+                let keys: Vec<&str> = config.tasks.keys().map(|s| s.as_str()).collect();
+                if let Some(closest) = find_closest(&t, keys) {
+                     return Err(ZettenError::TaskNotFoundFuzzy(t, closest.to_string()));
+                }
+                return Err(ZettenError::TaskNotFound(t));
             }
         }
     }
+
     let mut sorted = Vec::new();
     let mut visited = HashSet::new();
     let mut visiting = HashSet::new();
+
     fn visit(
         n: &str,
         cfg: &Config,
         s: &mut Vec<String>,
         v: &mut HashSet<String>,
         vg: &mut HashSet<String>,
-    ) -> Result<()> {
+    ) -> Result<(), ZettenError> {
         if vg.contains(n) {
-            return Err(anyhow!("USER_ERROR: Circular dependency at '{}'", n));
+            return Err(ZettenError::CircularDependency(n.to_string()));
         }
         if !v.contains(n) {
             vg.insert(n.to_string());
@@ -581,6 +590,7 @@ fn collect_tasks(config: &Config, roots: &[String]) -> Result<Vec<String>> {
         }
         Ok(())
     }
+
     for n in expanded {
         visit(&n, config, &mut sorted, &mut visited, &mut visiting)?;
     }

@@ -1,0 +1,14 @@
+# Windsurf Rules for Zetten Projects
+
+# Behavior
+- ALWAYS checks for `pyproject.toml` or `zetten.toml` to understand the project structure.
+- When asked to run tasks (test, lint, build), ALWAYS use `ztn run <task>` instead of raw commands (e.g. `pytest`).
+- If a `ztn` command fails, interpret the error code using the context from `docs/ai_context.md`.
+
+# Zetten Context
+Read `docs/ai_context.md` to understand the available tasks and workflows for this project.
+
+# Key Commands
+- `ztn tasks`: List available tasks
+- `ztn run <task>`: Execute a task
+- `ztn init`: Initialize configuration if missing
