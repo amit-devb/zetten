@@ -14,8 +14,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  test:
+    uses: ./.github/workflows/integration.yml
+
   build-pypi-wheels:
     name: Build wheels (${{ matrix.target }})
+    needs: test
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     strategy:

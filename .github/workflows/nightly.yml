@@ -10,7 +10,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  test:
+    uses: ./.github/workflows/integration.yml
+
   nightly:
+    needs: test
     runs-on: ubuntu-latest
 
     steps:
