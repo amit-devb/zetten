@@ -41,14 +41,17 @@ jobs:
           base_version = base_version.split(".dev")[0]
 
           today = date.today().strftime("%Y%m%d")
-          nightly_version = f"{base_version}.dev{today}"
+          # Python follows PEP 440: 1.3.0.dev20260210
+          nightly_version_py = f"{base_version}.dev{today}"
+          # Cargo follows SemVer: 1.3.0-dev20260210 (must start with hyphen for pre-release)
+          nightly_version_cargo = f"{base_version}-dev{today}"
 
-          py_data["project"]["version"] = nightly_version
+          py_data["project"]["version"] = nightly_version_py
 
           with open(py_path, "w") as f:
               f.write(tomlkit.dumps(py_data))
 
-          print(f"Updated pyproject.toml to {nightly_version}")
+          print(f"Updated pyproject.toml to {nightly_version_py}")
 
           # 2. Update Cargo.toml
           cargo_path = "Cargo.toml"
@@ -56,11 +59,9 @@ jobs:
               cargo_content = f.read()
           
           # Use regex to replace version = "..." inside [package]
-          # This is safer than simple replace, but we assume standard Cargo.toml structure
-          # "version = ..." usually appears early.
           new_cargo_content = re.sub(
               r'^version = ".*"$', 
-              f'version = "{nightly_version}"', 
+              f'version = "{nightly_version_cargo}"', 
               cargo_content, 
               count=1, 
               flags=re.MULTILINE
@@ -69,10 +70,13 @@ jobs:
           with open(cargo_path, "w") as f:
               f.write(new_cargo_content)
 
-          print(f"Updated Cargo.toml to {nightly_version}")
+          print(f"Updated Cargo.toml to {nightly_version_cargo}")
           
-          # 3. Output for shared use
-          print(f"::set-output name=version::{nightly_version}")
+          # 3. Output for shared use (using Python version as main identifier)
+          print(f"::set-output name=version::{nightly_version_py}") # Support older runners if needed
+          import os
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+              print(f"version={nightly_version_py}", file=fh)
           EOF
 
       - name: Build wheels
