@@ -1,4 +1,7 @@
 /target
+benchmarks/*.json
+benchmarks/venv
+benchmarks/*.json
 /.zetten
 **/*.hash
 /.vscode

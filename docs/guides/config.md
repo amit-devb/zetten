@@ -22,7 +22,7 @@ inputs = ["src/", "tests/"]
 ## Resolution Rules
 Zetten follows a strict logic to find your settings. If the configuration is missing or ambiguous, Zetten will fail with an explanation rather than trying to guess.
 
-- Check pyproject.toml: If it exists and contains a [tool.zetten] header, Zztn uses it.
+- Check pyproject.toml: If it exists and contains a [tool.zetten] header, Zetten uses it.
 - Check zetten.toml: If pyproject.toml doesn't have Zetten settings, it looks for this file.
 - Initialization: If neither is found, the project is considered uninitialized.
 
@@ -58,5 +58,5 @@ depends_on = ["lint"]
 ### Pro-Tip: Debugging Variables
 If you aren't sure what value a variable is taking, use the Doctor command:
 ```bash
-zetten doctor
+ztn doctor
 ```

@@ -1,0 +1,6 @@
+[tasks.noop]
+cmd = "true"
+
+[tasks.build]
+cmd = "echo 'Building...'"
+inputs = ["pyproject.toml"] # Artificial input to trigger cache check
