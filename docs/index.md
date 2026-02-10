@@ -1,6 +1,8 @@
 # Introduction
 
-**Zetten** is a high-performance, deterministic task runner for Python backend projects. Built in Rust, it acts as a focused execution engine designed to unify how you run tests, linters, and builds.
+# Introduction
+
+**Zetten** is a high-performance, deterministic execution engine for Python backend projects. Built in Rust, it acts as a focused task runner designed to unify how you run tests, linters, and builds.
 
 Zetten ensures that your workflow remains identical across local development environments and any CI platform—only faster.
 
@@ -23,4 +25,4 @@ To understand Zetten, it is helpful to know what it is **not**:
 - It is **not** a plugin system or a background service.
 - It is **not** a runtime dependency of your application.
 
-It is a small, fast, and predictable execution tool.
+It is a small, fast, and predictable execution tool accessed via the `ztn` command.

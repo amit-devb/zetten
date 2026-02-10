@@ -1,6 +1,6 @@
 # Variable Hints & Interpolation
 
-Zztn watchures a powerful, deterministic variable system. It allows you to write one command that adapts to different environments without changing the configuration file.
+Zetten features a powerful, deterministic variable system. It allows you to write one command that adapts to different environments without changing the configuration file.
 
 ## Syntax
 In your cmd strings, you can reference variables using the standard shell-like syntax:

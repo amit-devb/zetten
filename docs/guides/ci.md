@@ -3,14 +3,15 @@
 Zetten is designed for the modern CI/CD pipeline. By using Tags and Strict Mode, you can ensure your pipeline is both flexible and safe.
 
 
-### We just have to add tag to a task
+### Add a tag to a task
 ```toml
 [tool.zetten.tasks.lint]
 cmd = "ruff check src"
 inputs = ["src/"]
+tags = ["ci"]
 ```
 
-### Run the the task in CI
+### Run the task in CI
 ```bash
 ztn run --tag ci
 ```
