@@ -32,6 +32,7 @@ jobs:
           from datetime import date
           import tomlkit
           import re
+          import os
 
           # 1. Update pyproject.toml
           py_path = "pyproject.toml"
