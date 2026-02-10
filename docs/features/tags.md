@@ -2,7 +2,7 @@
 
 Tags allow you to filter which tasks to run. Zetten supports boolean logic for powerful selection.
 
-## defining Tags
+## Defining Tags
 
 ```toml
 [tasks.lint]

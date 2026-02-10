@@ -16,7 +16,7 @@ Zetten is a dependency-aware execution engine designed to unify how you run test
 Modern Python projects often require coordinating various tools (tests, type-checkers, formatters). Zetten eliminates "Glue Code Fatigue" by providing:
 
 * **Parallel Execution:** Automatically identifies independent tasks and runs them concurrently across your CPU cores.
-* **Three-Tier Variable:** System: Advanced command templating with a strict priority hierarchy: CLI Flags (-k) > Config Vars > Environment Variables.
+* **Three-Tier Variable System:** Advanced command templating with a strict priority hierarchy: CLI Flags (-k) > Config Vars > Environment Variables.
 * **Smart Caching:** Uses content-addressable hashing to skip tasks if their specific inputs haven't changed since the last run.
 * **Platform Agnostic:** Behaves identically on macOS, Windows, Linux, or any CI/CD provider.
 * **Dependency Awareness:** Define a Directed Acyclic Graph (DAG) of tasks to ensure correct execution order (e.g., `setup` always precedes `test`).
@@ -28,7 +28,7 @@ Modern Python projects often require coordinating various tools (tests, type-che
 - **⚡ Worker Pool Concurrency:** Maximizes resource usage by running non-dependent tasks in parallel.
 - **🏷️ CI Tagging:** Execute logical groups of tasks (e.g., `run --tag ci`) with a single command.
 - **🛡️ Failure Propagation:** If a foundational task fails, Zetten halts downstream execution to prevent cascading errors.
-- **🔍 Intelligent Diagnostics:** Includes `zetten doctor` to identify environment inconsistencies instantly.
+- **🔍 Intelligent Diagnostics:** Includes `ztn doctor` to identify environment inconsistencies instantly.
 - **⏱️ Performance Analytics:** (Coming Soon) Real-time insights into time saved via parallelism.
 
 ---
@@ -54,7 +54,7 @@ description = "Run a python function"
 ```
 
 Define tasks in pyproject.toml:
-```bash
+```toml
 [tool.zetten.tasks.lint]
 cmd = "ruff check src"
 inputs = ["src/"]
@@ -75,7 +75,7 @@ inputs = ["src/"]
 ```
 
 Define tasks in zetten.toml:
-```bash
+```toml
 [tasks.setup]
 cmd = "pip install -r requirements.txt"
 
@@ -102,9 +102,9 @@ Zetten will only re-run tasks when their inputs change.
 
 ## ⚙️ The Variable Hierarchy
 Zetten uses a deterministic three-tier system to resolve variables:
-- Tier 1 (CLI): ztn run build -k build_dir=output (Highest Priority)
-- Tier 2 (Config): Values defined in [tool.zetten.vars]
-- Tier 3 (Env): System environment variables (e.g., $USER, $PATH)
+- Tier 1 (CLI): `ztn run build -k build_dir=output` (Highest Priority)
+- Tier 2 (Config): Values defined in `[tool.zetten.vars]`
+- Tier 3 (Env): System environment variables (e.g., `$USER`, `$PATH`)
 
 ---
 
@@ -125,8 +125,8 @@ Configuration is explicit by design:
 - No implicit behavior
 
 Configuration lives in:
-- pyproject.toml (preferred)
-- zetten.toml (for legacy or minimal projects)
+- `pyproject.toml` (preferred)
+- `zetten.toml` (for legacy or minimal projects)
 
 If no configuration is found, Zetten will explain how to resolve the issue.
 
@@ -134,23 +134,22 @@ If no configuration is found, Zetten will explain how to resolve the issue.
 
 
 ## 🛠 Commands
-## 🛠 Commands
-- ztn run <tasks> — Execute tasks with parallel dependency resolution.
-- ztn run <task> -k KEY=VAL — Override any variable via the CLI.
-- ztn watch <tasks> — Precision re-runs on input changes.
-- ztn graph — Visualizes the Directed Acyclic Graph (DAG) of your tasks.
-- ztn doctor — Diagnoses configuration and environmental health issues.
-- ztn init — Interactive project setup and template generation.
+- `ztn run <tasks>` — Execute tasks with parallel dependency resolution.
+- `ztn run <task> -k KEY=VAL` — Override any variable via the CLI.
+- `ztn watch <tasks>` — Precision re-runs on input changes.
+- `ztn graph` — Visualizes the Directed Acyclic Graph (DAG) of your tasks.
+- `ztn doctor` — Diagnoses configuration and environmental health issues.
+- `ztn init` — Interactive project setup and template generation.
 
 ---
 
 ## 🛡 Status
-Zetten is currently in v0.1. If no configuration file is found, Zetten will provide clear instructions on how to initialize your project.
+Zetten is currently in **v1.3.1**. If no configuration file is found, Zetten will provide clear instructions on how to initialize your project.
 
 ---
 
 ## Documentation
-Full documentation is available at: [Github Wiki](https://github.com/amit-devb/zetten/wiki)
+Full documentation is available at: [docs.zetten.in](https://docs.zetten.in)
 
 ---
 

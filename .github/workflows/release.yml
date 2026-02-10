@@ -178,6 +178,7 @@ jobs:
       - name: Install via pip
         run: pip install zetten
       - name: Run CLI
+        shell: bash
         run: |
           for i in {1..5}; do
             pip install --no-cache-dir zetten && break || {
