@@ -1,6 +1,6 @@
 [package]
 name = "ztn"
-version = "1.3.3"
+version = "1.3.4"
 edition = "2021"
 authors = ["Amit Deb <deb.amit2013@gmail.com>"]
 description = "Fast, Python-aware task runner with deterministic caching and DAG-based scheduling"
@@ -33,6 +33,8 @@ globset = "0.4.18"
 ignore = "0.4.25"
 ctrlc = "3.5.1"
 walkdir = "2.5.0"
+miette = { version = "7.2", features = ["fancy"] }
+thiserror = "1"
 
 [profile.release]
 opt-level = 3
@@ -44,3 +46,8 @@ strip = true
 [[bin]]
 name = "ztn"
 path = "src/main.rs"
+
+[dev-dependencies]
+assert_cmd = "2.0"
+predicates = "3.1"
+tempfile = "3.10"

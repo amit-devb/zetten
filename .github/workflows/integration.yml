@@ -1,0 +1,26 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_call: # Allow reuse
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      
+    - name: Build
+      run: cargo build --verbose
+      
+    - name: Run Integration Tests
+      run: cargo test --test integration_errors --verbose

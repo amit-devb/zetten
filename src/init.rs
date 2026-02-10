@@ -1,8 +1,10 @@
-use anyhow::{bail, Result};
+use miette::Result; // Use miette
 use std::fs;
 use std::io::Write;
 use std::path::Path;
 use crate::templates::{self, TEMPLATES};
+use crate::errors::ZettenError;
+use colored::*;
 
 fn detect_env() -> Vec<&'static str> {
     let mut env = Vec::new();
@@ -24,16 +26,16 @@ fn detect_template() -> &'static str {
 
 pub fn init(template: &str) -> Result<()> {
     if Path::new("zetten.toml").exists() {
-        bail!("Zetten is already initialized (zetten.toml exists).");
+        return Err(ZettenError::AlreadyInitialized.into());
     }
 
     // Determine template name
     let chosen_name = if template == "auto" {
         let detected = detect_template();
-        println!("🚀 Auto-detected: {}", detected);
+        println!("🚀 Auto-detected environment: {}", detected.cyan());
         detected.to_string()
     } else if template == "interactive" {
-        crate::tui::select_template()?
+        crate::tui::select_template().map_err(|e| ZettenError::Anyhow(anyhow::anyhow!(e)))?
     } else {
         template.to_string()
     };
@@ -45,22 +47,28 @@ pub fn init(template: &str) -> Result<()> {
         .unwrap_or(templates::DEFAULT);
 
     let py_path = Path::new("pyproject.toml");
+    let target_file;
+    
     if py_path.exists() {
-        let existing = fs::read_to_string(py_path)?;
+        let existing = fs::read_to_string(py_path).map_err(ZettenError::IoError)?;
         if existing.contains("[tool.zetten]") {
-            bail!("Zetten is already initialized in pyproject.toml");
+            return Err(ZettenError::AlreadyInitialized.into());
         }
 
         let formatted = templates::format_for_pyproject(content.trim_start());
-        let mut file = fs::OpenOptions::new().append(true).open(py_path)?;
-        writeln!(file, "\n{}", formatted)?;
-        println!("✔ Updated pyproject.toml");
+        let mut file = fs::OpenOptions::new().append(true).open(py_path).map_err(ZettenError::IoError)?;
+        writeln!(file, "\n{}", formatted).map_err(ZettenError::IoError)?;
+        target_file = "pyproject.toml";
     } else {
-        fs::write("zetten.toml", content.trim_start())?;
-        println!("✔ Created zetten.toml");
+        fs::write("zetten.toml", content.trim_start()).map_err(ZettenError::IoError)?;
+        target_file = "zetten.toml";
     }
 
-    let env = detect_env();
-    if !env.is_empty() { println!("  Detected : {}", env.join(", ")); }
+    println!("\n{}:", "🎉 Zetten Initialized Successfully".green().bold());
+    println!("   Added configuration to {}", target_file.yellow());
+    
+    println!("\n{}:", "🚀 Try running your first task".bold());
+    println!("   {}", "ztn run hello".cyan());
+    
     Ok(())
 }
