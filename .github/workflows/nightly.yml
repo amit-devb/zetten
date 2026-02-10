@@ -31,22 +31,52 @@ jobs:
           python << 'EOF'
           from datetime import date
           import tomlkit
+          import re
 
-          path = "pyproject.toml"
-          data = tomlkit.parse(open(path).read())
+          # 1. Update pyproject.toml
+          py_path = "pyproject.toml"
+          py_data = tomlkit.parse(open(py_path).read())
 
-          base_version = data["project"]["version"]
+          base_version = py_data["project"]["version"]
           base_version = base_version.split(".dev")[0]
 
           today = date.today().strftime("%Y%m%d")
-          nightly_version = f"{base_version}.dev{today}"
+          # Python follows PEP 440: 1.3.0.dev20260210
+          nightly_version_py = f"{base_version}.dev{today}"
+          # Cargo follows SemVer: 1.3.0-dev20260210 (must start with hyphen for pre-release)
+          nightly_version_cargo = f"{base_version}-dev{today}"
 
-          data["project"]["version"] = nightly_version
+          py_data["project"]["version"] = nightly_version_py
 
-          with open(path, "w") as f:
-              f.write(tomlkit.dumps(data))
+          with open(py_path, "w") as f:
+              f.write(tomlkit.dumps(py_data))
 
-          print(f"Nightly version set to {nightly_version}")
+          print(f"Updated pyproject.toml to {nightly_version_py}")
+
+          # 2. Update Cargo.toml
+          cargo_path = "Cargo.toml"
+          with open(cargo_path, "r") as f:
+              cargo_content = f.read()
+          
+          # Use regex to replace version = "..." inside [package]
+          new_cargo_content = re.sub(
+              r'^version = ".*"$', 
+              f'version = "{nightly_version_cargo}"', 
+              cargo_content, 
+              count=1, 
+              flags=re.MULTILINE
+          )
+
+          with open(cargo_path, "w") as f:
+              f.write(new_cargo_content)
+
+          print(f"Updated Cargo.toml to {nightly_version_cargo}")
+          
+          # 3. Output for shared use (using Python version as main identifier)
+          print(f"::set-output name=version::{nightly_version_py}") # Support older runners if needed
+          import os
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+              print(f"version={nightly_version_py}", file=fh)
           EOF
 
       - name: Build wheels

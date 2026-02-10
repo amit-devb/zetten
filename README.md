@@ -4,7 +4,7 @@
 
 [![PyPI - Version](https://img.shields.io/pypi/v/zetten?color=orange&label=pypi)](https://pypi.org/project/zetten/)
 [![PyPI - License](https://img.shields.io/pypi/l/zetten?color=brightgreen&label=license)](https://github.com/amit-devb/zetten/blob/main/LICENSE)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/zetten?color=blue&label=python)](https://pypi.org/project/zetten/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/zetten.svg)](https://pypi.org/project/zetten/)
 [![CI Status](https://img.shields.io/github/check-runs/amit-devb/zetten/main?label=CI&logo=github)](https://github.com/amit-devb/zetten/actions)
 
 Zetten is a dependency-aware execution engine designed to unify how you run tests, linters, and builds. It ensures that your workflow remains identical across local development environments and any CI platform, only faster.
