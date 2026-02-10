@@ -1,0 +1,3 @@
+[tool.poe.tasks]
+noop = "true"
+build = "echo 'Building...'"
