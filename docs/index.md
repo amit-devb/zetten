@@ -18,6 +18,24 @@ Think of Zetten as an **execution engine**, not a framework. Unlike tools that r
 
 [Get Started](quickstart.md)
 
+## 🏎️ Performance
+
+Zetten is built for speed. Benchmarks against popular task runners show it provides the fastest developer experience for incremental builds.
+
+| Metric | Tool | Time | vs Zetten |
+| :--- | :--- | :--- | :--- |
+| **Startup** | **`ztn`** | **2.08 ms** | **1.00x** |
+| *(CLI overhead)* | `just` | 2.15 ms | 1.04x |
+| | `make` | 3.85 ms | 1.85x |
+| | `poe` | 41.88 ms | 20.15x |
+| | | | |
+| **Smart Caching** | **`ztn`** | **3.49 ms** | **1.00x** |
+| *(No-op re-run)* | `just` | 4.26 ms | 1.22x |
+| | `make` | 5.63 ms | 1.61x |
+| | `poe` | 64.68 ms | 18.52x |
+
+*> Benchmarks run on macOS (Apple Silicon).*
+
 ## What Zetten Is Not
 
 To understand Zetten, it is helpful to know what it is **not**:
