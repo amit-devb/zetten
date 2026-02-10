@@ -457,24 +457,6 @@
         
       
       
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Quick Start
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -491,36 +473,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#3-run-the-task" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3 Run the task
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
       
     </li>
   
@@ -1029,25 +981,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#3-run-the-task" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3 Run the task
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -1067,15 +1000,17 @@
 
 
 <h1 id="quickstart">Quickstart</h1>
-<p>Getting started with Zztn initakes less than a minute.</p>
-<p>Open your pyproject.toml and add a task for your linter:</p>
+<h1 id="quickstart_1">Quickstart</h1>
+<p>Getting started with Zetten takes less than a minute.</p>
+<h2 id="1-configure-a-task">1. Configure a Task</h2>
+<p>Open your <code>pyproject.toml</code> and add a task (e.g., for your linter):</p>
 <pre><code class="language-toml">[tool.zetten.tasks.lint]
 cmd = &quot;ruff check src&quot;
 inputs = [&quot;src/&quot;]
 </code></pre>
 <hr />
-<h2 id="3-run-the-task">3 Run the task</h2>
-<p>Execute the task using the run command:</p>
+<h2 id="2-run-the-task">2. Run the Task</h2>
+<p>Execute the task using the <code>run</code> command:</p>
 <pre><code class="language-bash">ztn run lint
 </code></pre>
 

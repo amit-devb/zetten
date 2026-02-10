@@ -401,24 +401,6 @@
         
       
       
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Introduction
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
       <a href="." class="md-nav__link md-nav__link--active">
         
   
@@ -435,47 +417,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#the-mental-model" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The Mental Model
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-zetten-is-not" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What Zetten Is Not
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
       
     </li>
   
@@ -1038,36 +979,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#the-mental-model" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The Mental Model
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#what-zetten-is-not" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What Zetten Is Not
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -1087,7 +998,8 @@
 
 
 <h1 id="introduction">Introduction</h1>
-<p><strong>Zetten</strong> is a high-performance, deterministic task runner for Python backend projects. Built in Rust, it acts as a focused execution engine designed to unify how you run tests, linters, and builds.</p>
+<h1 id="introduction_1">Introduction</h1>
+<p><strong>Zetten</strong> is a high-performance, deterministic execution engine for Python backend projects. Built in Rust, it acts as a focused task runner designed to unify how you run tests, linters, and builds.</p>
 <p>Zetten ensures that your workflow remains identical across local development environments and any CI platform—only faster.</p>
 <h2 id="the-mental-model">The Mental Model</h2>
 <p>Think of Zetten as an <strong>execution engine</strong>, not a framework. Unlike tools that rely on implicit behavior, Zetten requires explicit declarations:</p>
@@ -1104,7 +1016,7 @@
 - It is <strong>not</strong> a framework or a workflow engine.
 - It is <strong>not</strong> a plugin system or a background service.
 - It is <strong>not</strong> a runtime dependency of your application.</p>
-<p>It is a small, fast, and predictable execution tool.</p>
+<p>It is a small, fast, and predictable execution tool accessed via the <code>ztn</code> command.</p>
 
 
 

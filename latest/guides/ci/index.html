@@ -841,10 +841,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#we-just-have-to-add-tag-to-a-task" class="md-nav__link">
+  <a href="#add-a-tag-to-a-task" class="md-nav__link">
     <span class="md-ellipsis">
       
-        We just have to add tag to a task
+        Add a tag to a task
       
     </span>
   </a>
@@ -852,10 +852,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#run-the-the-task-in-ci" class="md-nav__link">
+  <a href="#run-the-task-in-ci" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Run the the task in CI
+        Run the task in CI
       
     </span>
   </a>
@@ -1074,10 +1074,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#we-just-have-to-add-tag-to-a-task" class="md-nav__link">
+  <a href="#add-a-tag-to-a-task" class="md-nav__link">
     <span class="md-ellipsis">
       
-        We just have to add tag to a task
+        Add a tag to a task
       
     </span>
   </a>
@@ -1085,10 +1085,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#run-the-the-task-in-ci" class="md-nav__link">
+  <a href="#run-the-task-in-ci" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Run the the task in CI
+        Run the task in CI
       
     </span>
   </a>
@@ -1139,12 +1139,13 @@
 
 <h1 id="ci-usage">CI Usage</h1>
 <p>Zetten is designed for the modern CI/CD pipeline. By using Tags and Strict Mode, you can ensure your pipeline is both flexible and safe.</p>
-<h3 id="we-just-have-to-add-tag-to-a-task">We just have to add tag to a task</h3>
+<h3 id="add-a-tag-to-a-task">Add a tag to a task</h3>
 <pre><code class="language-toml">[tool.zetten.tasks.lint]
 cmd = &quot;ruff check src&quot;
 inputs = [&quot;src/&quot;]
+tags = [&quot;ci&quot;]
 </code></pre>
-<h3 id="run-the-the-task-in-ci">Run the the task in CI</h3>
+<h3 id="run-the-task-in-ci">Run the task in CI</h3>
 <pre><code class="language-bash">ztn run --tag ci
 </code></pre>
 <h3 id="force-a-specific-version-and-environment-in-ci">Force a specific version and environment in CI</h3>

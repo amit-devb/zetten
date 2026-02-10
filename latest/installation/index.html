@@ -430,24 +430,6 @@
         
       
       
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Installation
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -464,80 +446,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#install-with-pip" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Install with pip
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#install-with-uv" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Install with UV
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#install-with-poetry" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Install with poetry
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#verify-installation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Verify Installation
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#requirements" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Requirements
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
       
     </li>
   
@@ -1073,69 +981,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#install-with-pip" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Install with pip
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#install-with-uv" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Install with UV
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#install-with-poetry" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Install with poetry
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#verify-installation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Verify Installation
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#requirements" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Requirements
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -1155,13 +1000,14 @@
 
 
 <h1 id="installation">Installation</h1>
-<p>Zetten is distributed as a single, self-contained binary. While it is built in Rust, it is easily installable via common Python package managers.</p>
+<h1 id="installation_1">Installation</h1>
+<p>Zetten is distributed as a single, self-contained binary written in Rust, but it is easily installable via common Python package managers.</p>
 <hr />
 <h2 id="install-with-pip">Install with pip</h2>
-<p>The easiest way to install Zetten is via <code>pip</code> or <code>uv</code> or <code>poetry</code>:</p>
+<p>The easiest way to install Zetten is via <code>pip</code>:</p>
 <pre><code class="language-bash">pip install zetten
 </code></pre>
-<h2 id="install-with-uv">Install with UV</h2>
+<h2 id="install-with-uv">Install with uv</h2>
 <pre><code class="language-bash">uv add zetten
 </code></pre>
 <h2 id="install-with-poetry">Install with poetry</h2>
@@ -1170,14 +1016,14 @@
 <hr />
 <h2 id="verify-installation">Verify Installation</h2>
 <p>Once installed, verify that the binary is available in your PATH:</p>
-<pre><code class="language-bash">zetten --help:
+<pre><code class="language-bash">ztn --help
 </code></pre>
 <hr />
 <h2 id="requirements">Requirements</h2>
 <ul>
-<li>Python-Aware: Zetten is aware of Python environments but does not depend on a specific Python version to run.</li>
-<li>No Virtual Env Required: You do not need to activate a virtual environment to use the zetten binary itself.</li>
-<li>OS Support: Native support for Linux, macOS, and Windows.</li>
+<li><strong>Python-Aware:</strong> Zetten detects Python environments automatically but does not depend on a specific Python version to run.</li>
+<li><strong>No Virtual Env Required:</strong> You do not need to activate a virtual environment to use the <code>ztn</code> binary itself (though your tasks might run commands inside one).</li>
+<li><strong>OS Support:</strong> Native support for Linux, macOS, and Windows.</li>
 </ul>
 
 
