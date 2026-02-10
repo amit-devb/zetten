@@ -40,24 +40,7 @@ lazy_static! {
 }
 
 fn main() -> anyhow::Result<()> {
-    // 1. Pillar 2: Graceful Shutdown
-    ctrlc::set_handler(move || {
-        println!(
-            "\n{}",
-            "🛑 Shutdown signal received! Cleaning up processes..."
-                .red()
-                .bold()
-        );
-        if let Ok(mut registry) = PROCESS_REGISTRY.lock() {
-            for mut child in registry.drain(..) {
-                let _ = child.kill();
-            }
-        }
-        println!("{}", "✔ Cleanup complete. Exiting.".yellow());
-        std::process::exit(130);
-    })?;
-
-    // 2. CLI Parsing
+    // 1. CLI Parsing (Fast Path)
     let cli = match Cli::try_parse() {
         Ok(c) => c,
         Err(e) => {
@@ -81,6 +64,23 @@ fn main() -> anyhow::Result<()> {
             e.exit();
         }
     };
+
+    // 2. Pillar 2: Graceful Shutdown (Only for actual execution)
+    ctrlc::set_handler(move || {
+        println!(
+            "\n{}",
+            "🛑 Shutdown signal received! Cleaning up processes..."
+                .red()
+                .bold()
+        );
+        if let Ok(mut registry) = PROCESS_REGISTRY.lock() {
+            for mut child in registry.drain(..) {
+                let _ = child.kill();
+            }
+        }
+        println!("{}", "✔ Cleanup complete. Exiting.".yellow());
+        std::process::exit(130);
+    })?;
 
     if Path::new(".env").exists() && dotenvy::dotenv().is_ok() {
         crate::log::info("Environment variables loaded from .env");

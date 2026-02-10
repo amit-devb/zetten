@@ -33,3 +33,8 @@ Repository = "https://github.com/amit-devb/zetten"
 [tool.maturin]
 bindings = "bin"
 strip = true
+
+[tool.zetten.tasks.bench]
+cmd = "python3 benchmarks/runner.py"
+description = "Run the performance benchmark suite"
+hints = "Make sure you have hyperfine installed"
